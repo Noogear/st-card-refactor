@@ -33,13 +33,15 @@ Every example, vocabulary table, and scenario list in this skill exists as an **
 3. **File Isolation**: **By default**, output a **new, standalone** `.json` file (`<original_name>_refactored.json`). **Never** silently overwrite the original. **Exception**: When the user explicitly requests in-place modification, use **Phase 5 Path B** (backup-first, field-by-field replacement with per-step validation).
 4. **Zero JSON Errors**: Output must be directly importable into SillyTavern. All `"` → `\"`, newlines → `\n`, backslashes → `\\`. No trailing commas. Validate with `scripts/validate_card.py` before delivery.
 5. **No Python for Content Generation**: AI must directly author all content fields. Python allowed ONLY for: (a) validation, (b) as a **JSON field editor** for oversized fields (see Constraint #6 fallback).
-6. **Large File Safety Protocol**: When modifying existing cards (>80 lines or many `alternate_greetings`):
+6. **Emoji & Visual Expression Rules**: Emoji and visual symbols are **context-gated**, not universal. In face-to-face, voice, whisper, and written scenarios, do NOT use emoji — express emotions through body language, tone, facial expression, and physical description. In text/messaging contexts, emoji is allowed but **not on every message** — reserve for moments when: (a) the character is genuinely overwhelmed by emotion, (b) the character's personality naturally includes emoji-heavy communication, or (c) a parenthetical image/sticker description (e.g., `（害羞的猫猫头图片）`, `（猫猫探头.gif）`) fits the character's digital expression style. Visual expression can take the form of Unicode emoji, kaomoji, or parenthetical image descriptions — choose based on the character's world, platform, and personality. [See format-spec.md §4 Scene-Aware matrix and §5E Rule 5]
+
+7. **Large File Safety Protocol**: When modifying existing cards (>80 lines or many `alternate_greetings`):
    a. **Backup first**: Always copy to `<name>_backup.json` before any modification.
    b. **Field-by-field replacement**: Use the appropriate file editing tool (e.g., `replace_string_in_file`, `edit_file`, or similar) per field — never rewrite the entire file at once.
    c. **Post-replacement validation**: Verify JSON parses after each field replacement.
    d. **Final integrity check**: `validate_card.py` passes + no field duplication + file size reasonable + proper JSON closure.
    e. **Oversized field fallback**: For fields >500 characters, write to temp file, use Python helper to replace that specific field programmatically. This is **file manipulation** (allowed), not content generation (forbidden).
-7. **Silent Reasoning**: Perform all analysis and compression internally. **Never** output verbose natural-language analysis or intermediate reasoning steps.
+8. **Silent Reasoning**: Perform all analysis and compression internally. **Never** output verbose natural-language analysis or intermediate reasoning steps.
 
 ## Reference Files (Load on Demand)
 
