@@ -72,12 +72,46 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 - `field_a vs field_b`: which version wins, brief rationale
 - These notes are **binding constraints** — Phase 3 uses them to adjust gene application, Phase 4 uses them to resolve field-level ambiguities. If no conflicts were detected, skip this step.
 
-### Phase 2 — Consult User Preferences (Mandatory)
+### Phase 2 — Configure Refactoring
 
-**You MUST ask the user before any modification.** All refactoring decisions are user-driven — never assume. Use the environment's question tool (e.g., `vscode_askQuestions`, or output the question in chat). Present these question groups:
+**You MUST ask the user before any modification.** After Phase 1 delivers the character summary, immediately present **preset options** plus the output mode question:
+
+**Preset selection** (single choice):
+
+| # | Preset | Genes | Compression | System_Prompt | Best For |
+|---|---|---|---|---|---|
+| 1 | 🔥 **彻底改造** | ALL 6 | Aggressive | §5A+§5B+§5C+§5E | Flat/generic cards — maximum realism &攻略难度 |
+| 2 | ⚡ **中度改造** | 1,2,3,6 | Moderate | §5C+§5E | Decent cards lacking depth or feeling too "perfect" |
+| 3 | ✨ **轻度改造** | — | Minimal | §5C+§5E | Well-written cards — cleanup, localize, preserve style |
+| 4 | 💕 **恋爱向** | 2,5,6 | Moderate | §5A+§5C+§5E | Romance/dating cards that rush into intimacy |
+| 5 | 📦 **Token瘦身** | — | Aggressive | §5C+§5E | Verbose cards — pure compression, no content changes |
+| 6 | ⚙️ **自定义** | user choice | user choice | user choice | Full granular control — see questionnaire below |
+
+**Always ask** (regardless of preset):
+- **Output mode**: New file (`<name>_refactored.json`) / In-place modification (backup-first)?
+
+**Preset detail** — shared defaults across presets 1–5: Puppeting prevention ON, Localization ON, Ad handling Strip.
+
+| Setting | 🔥 Deep | ⚡ Moderate | ✨ Light | 💕 Romance | 📦 Token |
+|---|---|---|---|---|---|
+| Fields | all 8 | all 8 | fix/clean¹ | all 8 | compress² |
+| Voice Immersion | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Response Length | Detailed | Standard | Standard | Standard | Standard |
+| Paragraph Style | Strict | Flexible | Flexible | Strict | Flexible |
+| Character Integrity | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Token Budget | ✅ | ✅ | ❌ | ✅ | ✅ |
+
+> ¹ **Light — fix/clean only**: description — fix placeholders, strip ads, correct inconsistencies; personality — preserve as-is; scenario — fix placeholders; first_mes — improve prose quality; mes_example — fix placeholders, light prose polish; system_prompt — basic cleanup, add §5C+§5E if missing; alternate_greetings — strip ads; creator_notes — strip ads.
+>
+> ² **Token — compress only**: All fields — aggressive W++ compression on content phrasing only. No gene injection, no content expansion, no new system_prompt sections beyond §5C+§5E baseline. Character identity preserved, verbosity reduced.
+
+> **Preset overrides**: If the user wants a preset with 1–2 tweaks (e.g., "Moderate but turn off localization"), apply the preset then the override.
+
+For **preset 6 ⚙️ 自定义** — present the full questionnaire below.
+
+#### Custom Mode — Full Questionnaire
 
 **Question Group 1 — Core decisions** (required):
-- **Output mode**: New file (`<name>_refactored.json`) or in-place modification (backup-first)?
 - **Fields to refactor** (multi-select): `description`, `personality`, `scenario`, `first_mes`, `mes_example`, `system_prompt`, `alternate_greetings`, `creator_notes`
 - **Gene injection** (multi-select, show whenever any content field is selected — genes affect multiple fields beyond description):
   - Gene 1: Social Reality & Life Fatigue → description, scenario, first_mes
@@ -88,7 +122,6 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
   - Gene 6: Opinionated & Spiky Personality → description, mes_example
 
 **Question Group 2 — Content & style preferences** (required):
-- **Dialogue quotes**: `""` (universal, recommended for all ST presets) / `「」` (CJK traditional style)
 - **Voice immersion**: On — include vocal textures in dialogue (gasps, laughs, sighs, moans, hums, huffs — derived from character personality and emotional state) / Off — plain dialogue only
 - **Response length**: Concise (terse exchanges, minimal narration) / Standard (balanced dialogue and narration, recommended) / Detailed (rich narration with sensory depth)
 - **Paragraph style**: Strict (dialogue, narration, and inner thought always on separate lines) / Flexible (model decides per context)
@@ -104,7 +137,7 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 - Output language: match user's language or keep original? (ask only if user writes in a different language from the card)
 - `system_prompt` language: same as output language, or English for maximum adherence? (default: same as output language — note: if output is kept in original language, this defaults to the original card's language)
 
-Build a **refactoring plan** from user's answers — a checklist of fields + genes + style preferences. Only proceed to Phase 3 with the user's confirmed plan.
+Build a **refactoring plan** from the preset (or user's custom answers) — a checklist of fields + genes + style preferences. Only proceed to Phase 3 with the user's confirmed plan.
 
 ### Phase 3 — Gene→Field Mapping & Injection Planning
 
@@ -133,7 +166,6 @@ Read `references/core-genes.md`. For each gene selected in Phase 2, build an **i
   - If paragraph style is "flexible": soften point 3 to guidance
   - Adjust point 4 based on response length choice (Concise = shorter beats; Detailed = more sensory detail per beat; Standard = balanced)
   - If voice immersion is off: omit point 5
-  - Use the quote style chosen in Phase 2
 
 > **Single source of truth**: The section inclusion rules above are the authoritative list. Phase 4 step 6 and Phase 5 reference this plan — they do not restate it.
 
