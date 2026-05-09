@@ -62,7 +62,9 @@ Read the user's original `.json` file. Extract all key fields under `spec.chara_
 
 Identify the character's: identity/occupation, age, appearance, core relationships, existing personality tags, scene setting, world/setting type (modern realistic, fantasy, sci-fi, historical, school, supernatural, etc.), and special mechanics (e.g., power dynamics, unique abilities, setting-specific rules).
 
-**Preserve as-is**: Mark the following fields for exact preservation (do not modify): `extensions`, `character_book`, `avatar`, `tags`, `creator`, `character_version`, `post_history_instructions`. These pass through untouched to the output.
+**Preserve as-is**: Mark the following fields for exact preservation (do not modify): `character_book`, `avatar`, `tags`, `creator`, `character_version`, `post_history_instructions`. These pass through untouched to the output.
+
+**Preserve with exception**: `extensions` — preserve the entire structure untouched, **except** `extensions.depth_prompt` (an `Author's Note` object with `depth` and `prompt` keys), which may be written/overwritten when the user enables **Anti-Degradation A/N** in Phase 2. Do NOT touch any other `extensions` sub-fields (regex scripts, custom data, etc.). If the user's original card has no `extensions` object, create one containing only `depth_prompt` when needed.
 
 **Brief the user**: After parsing, provide a **concise character summary** (3-5 sentences) covering: who the character is, what world/setting, key relationships, and any special mechanics. This helps the user understand the scope before choosing what to refactor.
 
@@ -104,6 +106,7 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 | Paragraph Style | Strict | Flexible | Flexible | Strict | Flexible |
 | Character Integrity | ✅ | ✅ | ❌ | ✅ | ❌ |
 | Token Budget | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Anti-Degradation A/N | ✅ | ❌ | ❌ | ✅ | ❌ |
 
 > ¹ **Light — fix/clean only**: description — fix placeholders, strip ads, correct inconsistencies; personality — preserve as-is; scenario — fix placeholders; first_mes — improve prose quality; mes_example — fix placeholders, light prose polish; system_prompt — basic cleanup, add §5C+§5E if missing; alternate_greetings — strip ads; creator_notes — strip ads.
 >
@@ -136,6 +139,7 @@ For **preset 6 ⚙️ 自定义** — present the full questionnaire below.
 - **Localization directive**: On (system_prompt instructs model to render all output in user's language) / Off (keep original language in output)
 - **Ad handling**: Strip promotional content (recommended — removes sponsor links, Discord invites) / Preserve everything
 - **Token budget**: On (maintain awareness of `system_prompt` size — prefer concise, character-specific phrasing) / Off (no token limit — prioritize completeness)
+- **Anti-Degradation A/N** (Author's Note): On (inject a concise style-enforcement directive at depth 1 via `extensions.depth_prompt` to prevent long-chat robotic degradation — recommended for slow-burn, conquest, and complex characters) / Off (leave `depth_prompt` empty)
 
 **Question Group 3 — Special options** (ask only when applicable):
 - `alternate_greetings` count: keep all or consolidate to 4-6? (ask only if >8 greetings)
@@ -183,6 +187,7 @@ Read `references/core-genes.md`. For each gene selected in Phase 2, build an **i
   - If paragraph style is "flexible": soften point 3 to guidance
   - Adjust point 4 based on response length choice (Concise = shorter beats; Detailed = more sensory detail per beat; Standard = balanced)
   - If voice immersion is off: omit point 5
+  - **§5E-i** (Anti-Degradation A/N): include **only** if user enabled Anti-Degradation A/N in Phase 2 — writes `extensions.depth_prompt` with a style-enforcement directive (see format-spec.md §5E-i for template)
 
 > **Single source of truth**: The section inclusion rules above are the authoritative list. Phase 4 step 6 and Phase 5 reference this plan — they do not restate it.
 
@@ -204,6 +209,7 @@ If no genes were selected, skip Phase 3 entirely. Proceed to Phase 4 with §5C+�
 6. **`system_prompt`** — Assemble per the Phase 3 plan. Language: follow user's preference from Phase 2. [See format-spec.md §5 for templates, Phase 3 for inclusion rules]
 7. **`alternate_greetings`** — Retain valid original scenarios, improve prose quality. If ad handling was set to "strip" in Phase 2, remove promotional/sponsorship content. If "preserve everything", leave unchanged. **Always preserve `![](url)` character image links** — they do not consume LLM tokens.
 8. **`creator_notes`** — Apply ad handling per Phase 2 choice. [See format-spec.md §6 for purge/retain rules]
+9. **`extensions.depth_prompt`** — If Anti-Degradation A/N was enabled in Phase 2, write the `Author's Note` object into `extensions.depth_prompt` per the §5E-i template. If the card has no `extensions` object, create it with only `depth_prompt`. Preserve all other `extensions` sub-fields untouched. [See format-spec.md §5E-i]
 
 > **Token Budget Guidance** (only when user enabled token budget in Phase 2): Prefer concise, character-specific phrasing over exhaustive examples. Trim redundant directives that are already expressed by the character's own fields (description, first_mes, mes_example). Avoid restating personality traits in `system_prompt` that are already visible in `description`. If the budget is off, still audit for redundancy — but without a hard target.
 >
@@ -224,7 +230,8 @@ If contradictions remain, present them to the user.
 **Cleanup** (after all consistency checks pass):
 - **Backup**: Per Constraint #6, always backup before modification.
 - Preserve `tags`, `creator`, `character_version`, `avatar`, and other metadata unchanged.
-- Preserve `extensions` structure and `post_history_instructions` unchanged.
+- Preserve `extensions` structure unchanged, **except** `extensions.depth_prompt` which may be set/updated when Anti-Degradation A/N is enabled. Do NOT modify other `extensions` sub-fields.
+- Preserve `post_history_instructions` unchanged.
 - Preserve `character_book` unchanged (if present).
 
 **Token Waste Audit**: After resolving all conflicts, scan the entire output card for content that consumes tokens without adding experience value:

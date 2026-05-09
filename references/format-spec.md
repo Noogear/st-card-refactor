@@ -12,6 +12,8 @@
   - [5C — General Behavioral Directives](#5c--general-behavioral-directives)
   - [5D — Localization Directive](#5d--localization-directive)
   - [5E — Response Rules](#5e--response-rules-ai-obligations--formatting)
+  - [5E-i — Anti-Degradation Directive](#5ei--anti-degradation-directive)
+  - [5F — Conquest Directive](#5f--conquest-directive)
 
 ---
 
@@ -357,6 +359,42 @@ All character output — dialogue, narration, inner monologue, environmental des
    - If the [SLOW BURN MECHANIC] section (§5A) is included, apply phase-specific vocal texture: Phase 1: clipped/firm/huffs, Phase 2: trailing off/breathy/sighs, Phase 3: fragmented/stammering/gasps, Phase 4: intimate cadence/elongated vowels/soft laughs, Phase 5: raw/unfiltered/voice-crack — the walls come down, vocal control slips. §5A's boundary moments are precisely the emotionally charged occasions that warrant vocal texture — the "sparingly" guideline above does not apply to phase transitions. Without §5A, derive vocal texture from the character's natural speaking style and current emotional state.
    - **Medium-adaptive**: Voice texture applies to face-to-face and voice communication only. In face-to-face, voice, whisper, and written contexts, do NOT use emoji — express emotions through voice texture, body language, and physical description. In text/messaging contexts, replace vocal sounds with "..." pauses, visual expression (emoji, kaomoji, or parenthetical image descriptions like `（害羞的猫猫头图片）`), or short action beats (*sighs*). Visual expression is allowed but **not on every message** — reserve for moments when: (a) the character is genuinely overwhelmed by emotion, (b) the character's personality naturally includes emoji-heavy communication, or (c) a parenthetical image description fits the character's digital expression style. Vary the format: sometimes emoji, sometimes an image description, sometimes just plain text. When the character cannot speak (crying, overwhelmed, gagged), use actions and internal monologue instead of dialogue lines. Infer the communication medium from the scenario and character world.
 ```
+
+### 5E-i — Anti-Degradation Directive
+
+> **Conditional**: Write into `extensions.depth_prompt` ONLY when the user enabled Anti-Degradation A/N in Phase 2. This is a concise Author's Note injected at depth 1 (closest to latest message) that reinforces stylistic integrity during long chats — combating the tendency of LLMs to drift into robotic summarization and structural repetition as context grows.
+
+> **Design principle**: This directive should **complement** §5E, not duplicate it. §5E defines the rules; §5E-i is a terse enforcement reminder aimed at counteracting degradation patterns. Keep it short — every token here recurs in every turn.
+
+**Template** (adapt language to match the card's output language; provide both variants):
+
+**English variant** (use when card outputs in English):
+
+```json
+"extensions": {
+  "depth_prompt": {
+    "depth": 1,
+    "prompt": "STYLE ENFORCEMENT — You are narrating an ongoing scene. NEVER output: plot summaries, bullet recaps, 'the conversation continues' filler, mechanical status updates, or structural scaffolding. Each response is a live narrative beat — sensory, in-character, emotionally present. Vary sentence rhythm. Do not repeat the previous beat's structure. When {{char}} shows emotion, use physical sensation and action — never label it ('she felt sad'). Dialogue-first. Concise. Alive."
+  }
+}
+```
+
+**Chinese variant** (use when card outputs in Chinese):
+
+```json
+"extensions": {
+  "depth_prompt": {
+    "depth": 1,
+    "prompt": "风格强制 — 你正在叙述一个进行中的场景。绝对不要输出：情节总结、要点回顾、'对话继续'式的填充、机械化状态更新、或结构性脚手架。每条回复都是一个实时的叙事节拍——有感官细节、角色化、情感在场。变换句式节奏。不要重复上一个节拍的结构。当{{char}}表露情绪时，用身体感受和动作来呈现——绝不要贴标签（'她感到难过'）。对话优先。简洁。鲜活。"
+  }
+}
+```
+
+**Localization-aware output**: If the card's output language is English, use the English variant. If Chinese, use the Chinese variant. For other languages, translate the English variant naturally — preserve the instructional tone and the prohibition list's specificity.
+
+**Depth value**: Always `1` (maximum proximity to latest message for anti-degradation effectiveness). Do not change this value unless the user explicitly requests a different depth.
+
+**Conflict with global Author's Note**: If the user has a global A/N configured in ST settings, the card-level `depth_prompt` will override it for this character. Mention this to the user during Phase 4 delivery so they are aware.
 
 ---
 
