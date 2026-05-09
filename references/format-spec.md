@@ -488,6 +488,7 @@ Rules:
 - For a newly discovered target (level was 0 or absent), set it to 1 if {{user}}'s first interaction met active resistance (the default discovery reaction).
 - Example (3 targets): <conq:head=3,waist=1,inner_thigh=0>
 - The tag MUST appear AFTER all narrative content — it is the very last line of the response.
+- Output the tag as PLAIN TEXT on its own line. Do NOT wrap it in code blocks (```), backticks (`), or any other markdown formatting.
 - Do NOT explain the tag, reference it, or mention it in narrative text. It is invisible infrastructure.
 {END_STATE_UPDATE_TAG}
 ```
@@ -631,7 +632,7 @@ A QR script (auto-executed via `executeOnAi: true`) parses the tag and runs `/se
    - For each match, splits on `,` then `=`, and runs `/setvar key=<name> value=<value>`
    - Uses `/silent` prefix to avoid outputting parse results to chat
 5. **Fallback safety** — if a tag is malformed or missing, the script silently skips (no error output)
-6. **Tag hiding** — a companion Regex config hides all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display using `onlyFormatDisplay: true`. A single regex pattern `<(conq|state|secret):[^>]+>` matches all three tag types (see SKILL.md Phase 5 Infrastructure Files).
+6. **Tag hiding** — a companion Regex config hides all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display using `markdownOnly: true`. A single regex pattern `\n?<(conq|state|secret):[^>]+>\n?` matches all three tag types and eats surrounding newlines to prevent ghost blank lines (see SKILL.md Phase 5 Infrastructure Files).
 
 ### System Prompt Integration
 

@@ -357,7 +357,7 @@ Template:
   {
     "id": 1,
     "scriptName": "tag_hider",
-    "findRegex": "<(conq|state|secret):[^>]+>",
+    "findRegex": "\\n?<(conq|state|secret):[^>]+>\\n?",
     "replaceString": "",
     "trimStrings": [],
     "placement": [1],
@@ -372,7 +372,7 @@ Template:
 ]
 ```
 
-> Single regex pattern `<(conq|state|secret):[^>]+>` matches all three tag types. If only conquest is active (no state tracking), the pattern still works — it simply won't match any `<state:...>` or `<secret:...>` tags.
+> Single regex pattern `\n?<(conq|state|secret):[^>]+>\n?` matches all three tag types and eats surrounding newlines to prevent ghost blank lines. If only conquest is active (no state tracking), the pattern still works — it simply won't match any `<state:...>` or `<secret:...>` tags.
 
 > **Key field rules** (verified against ST source):
 > - `markdownOnly: true` — hides tags from display only (not from AI context). This is the CORRECT field name; `onlyFormatDisplay` does NOT exist in the source code.
