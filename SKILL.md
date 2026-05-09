@@ -82,15 +82,17 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 
 | # | Preset | Genes | Compression | System_Prompt | Best For |
 |---|---|---|---|---|---|
-| 1 | 🔥 **彻底改造** | ALL 6 | Aggressive | §5A+§5B+§5C+§5E | Flat/generic cards — maximum realism &攻略难度 |
+| 1 | 🔥 **彻底改造** | ALL 7 | Aggressive | §5A+§5B+§5C+§5E+§5F | Flat/generic cards — maximum realism &攻略难度 |
 | 2 | ⚡ **中度改造** | 1,2,3,6 | Moderate | §5C+§5E | Decent cards lacking depth or feeling too "perfect" |
 | 3 | ✨ **轻度改造** | — | Minimal | §5C+§5E | Well-written cards — cleanup, localize, preserve style |
 | 4 | 💕 **恋爱向** | 2,5,6 | Moderate | §5A+§5C+§5E | Romance/dating cards that rush into intimacy |
 | 5 | 📦 **Token瘦身** | — | Aggressive | §5C+§5E | Verbose cards — pure compression, no content changes |
-| 6 | ⚙️ **自定义** | user choice | user choice | user choice | Full granular control — see questionnaire below |
+| 6 | 🏰 **攻城掠地** | 7 | Moderate | §5C+§5E+§5F | Cards with conquestable territories, zones, or relational dynamics |
+| 7 | ⚙️ **自定义** | user choice | user choice | user choice | Full granular control — see questionnaire below |
 
 **Always ask** (regardless of preset):
 - **Output mode**: New file (`<name>_refactored.json`) / In-place modification (backup-first)?
+- **Extra rules** (optional, freeform): After selecting a preset, the user may describe any behavioral adjustments, language-register preferences, or narrative mechanics they want applied beyond the standard gene framework. When the character's established premise conflicts with the default emotional arc of Gene 5 (e.g., the character already has an intimate dynamic with {{user}} that makes progressive emotional bonding an awkward fit), the standard slow-burn template may need to be substituted with a variant that tracks a different kind of progression. The system should listen for such requests, evaluate whether a built-in variant applies, and propose one — or derive a custom alternative from the user's description. See the **Variant Catalog** in Phase 3 for available substitutions.
 
 **Preset detail** — shared defaults across presets 1–5: Puppeting prevention ON, Localization ON, Ad handling Strip.
 
@@ -122,6 +124,7 @@ For **preset 6 ⚙️ 自定义** — present the full questionnaire below.
   - Gene 4: Random Events & Emotional Catalysts → scenario, mes_example, system_prompt
   - Gene 5: Anti-Speedrun & Dynamic Comfort State Machine → system_prompt, mes_example (⚠️ primarily for romance/intimacy dynamics; safe to skip for platonic, mentor, rival, or sibling-type characters)
   - Gene 6: Opinionated & Spiky Personality → description, mes_example
+  - Gene 7: Conquest & Progressive Acceptance → description, scenario, mes_example, system_prompt (⚠️ requires at least one conquestable target in the card — body zones, territories, factions, or relational dynamics with built-in resistance)
 
 **Question Group 2 — Content & style preferences** (required):
 - **Voice immersion**: On — include vocal textures in dialogue (gasps, laughs, sighs, moans, hums, huffs — derived from character personality and emotional state) / Off — plain dialogue only
@@ -153,15 +156,27 @@ Read `references/core-genes.md`. For each gene selected in Phase 2, build an **i
 | Gene 4: Random Events | scenario | mes_example, system_prompt |
 | Gene 5: Slow Burn | system_prompt | mes_example |
 | Gene 6: Opinionated | description | mes_example |
+| Gene 7: Conquest | description, scenario, system_prompt | mes_example |
 
 > **Primary vs Secondary**: Primary fields are the gene's core injection surface — traits and behaviors should be clearly expressed there. Secondary fields are supporting — they demonstrate or complement the primary injection but don't carry the full weight. If a user did not select a primary field for rewriting, do not inject that gene into its secondary fields alone.
 
 **Consult Phase 1 conflict resolutions** — if a gene's injection would contradict a user resolution (e.g., user chose "shy" personality but Gene 6 pushes "spiky"), adjust the gene's intensity or skip it for that field.
 
+**Variant Catalog** (gene template substitutions — triggered only by user-requested extra rules in Phase 2):
+
+| When | Substitution | What changes |
+|---|---|---|
+| Gene 5 selected + character's premise already permits intimate access | §5A → §5A-erosion | The 5-phase state machine shifts from emotional-bonding progression to progressive inhibition erosion. Phases track psychological barriers breaking down rather than affection building up. Language register escalates from euphemistic to direct across phases (see format-spec.md §5E Rule 5 extras). |
+| Gene 5 selected + user requests a custom alternative | §5A → §5A-custom | Derived from user's description. Must be recorded in the refactoring plan with explicit phase-by-phase rationale. |
+
+**Anti-pattern**: Never include both §5A and a variant — the user picks one model per card. If the user's request does not match a catalog entry, derive a custom alternative and confirm before proceeding.
+
 **Determine `system_prompt` sections to include** (see format-spec.md §5):
-- §5A (Slow Burn): include **only** if Gene 5 was selected
+- §5A (Slow Burn): include **only** if Gene 5 was selected and no variant substitution was requested
+- §5A-erosion (Erosion variant): include **only** if Gene 5 was selected and the user requested a boundary-erosion model via extra rules — replaces §5A entirely (never include both)
 - §5B (Random Events): include **only** if Gene 4 was selected
 - §5C (Behavior): **always included** — includes optional Character Integrity sub-clause (§5C-i) when enabled in Phase 2
+- §5F (Conquest): include **only** if Gene 7 was selected — defines progressive acceptance zones and discovery hints for conquestable targets
 - §5D (Localization): include **only** if user enabled localization in Phase 2
 - §5E (Response Rules): **always included** — customize based on Phase 2 style choices:
   - If puppeting prevention is off: omit points 1-2
@@ -227,19 +242,89 @@ If found, trim the waste. Present a summary of trimmed content to the user for c
 **Path A — New file (refactoring into a separate output file):**
 1. Write the complete `.json` to a new file. Output filename: `<original_name>_refactored.json`.
 2. Run `scripts/validate_card.py`.
-3. Deliver summary (≤5 bullet points).
+3. If Gene 7 (Conquest) was selected, also generate the **Conquest Infrastructure Files** (see below).
+4. Deliver summary (≤5 bullet points).
 
 **Path B — Existing file modification (in-place editing):**
 1. **Pre-check**: Verify Phase 4 backup exists (`<name>_backup.json`). If not, abort and create backup first.
 2. **Field-by-field replacement**: Modify content fields **one at a time** using the file editing tool. Each call targets exactly one JSON field value. Include 3-5 lines of surrounding context (the field key and adjacent fields) to uniquely identify the replacement point. Process fields in this order: `description` → `personality` → `scenario` → `first_mes` → `mes_example` → `system_prompt` → `alternate_greetings` → `creator_notes`.
 3. **Per-replacement validation**: After each field replacement, run `validate_card.py` immediately. If it fails, restore from backup and retry that field with a more precise context string.
 4. **Oversized field fallback**: Per Constraint #6e, use temp file + Python helper for fields >500 characters.
-5. **Final integrity check (all must pass before delivery):
+5. **Final integrity check** (all must pass before delivery):
    - `validate_card.py` passes
    - Search for each modified field name — each must appear **exactly once** (no duplication)
    - File size is reasonable: compare to backup. If W++ compression was applied, new size should be smaller; if system_prompt was expanded, it may be larger. A file that is >50% smaller than backup likely indicates truncation.
    - Spot-check: read the last 10 lines of the file — must end with proper JSON closure (`}`/`]`/`}`)
 6. **If integrity fails at any step**: Immediately restore from backup, report the failure to the user, and retry with the fallback strategy.
-7. Deliver summary (≤5 bullet points).
+7. If Gene 7 (Conquest) was selected, also generate the **Conquest Infrastructure Files** (see below).
+8. Deliver summary (≤5 bullet points).
 
 **Post-delivery testing tip**: After importing the refactored card into SillyTavern, a quick way to verify character consistency is to have {{user}} ask {{char}} about themselves — their daily routine, a hobby, or their opinion on something. If {{char}}'s response matches the personality, appearance, and world established in the refactored fields, the card is functioning correctly. Discrepancies (e.g., forgetting established traits, contradicting the scenario) indicate a field-level inconsistency to revisit.
+
+#### Conquest Infrastructure Files (Gene 7 only)
+
+When Gene 7 was selected, the system must generate **two additional files** for the user to import into SillyTavern. These files enable persistent state tracking — without them, conquest progress only survives within the current chat context window and is lost when older messages are truncated.
+
+**File 1 — Quick Reply Script** (`conquest_qr.json`):
+
+This is a SillyTavern Quick Reply preset that automatically parses the `<conq:...>` state update tag from every AI response and writes the values into SillyTavern local variables. The user imports this via ST's Quick Reply preset menu.
+
+Template (the system fills in `<TARGET_LIST>` from the card's conquestable targets):
+
+```json
+{
+  "version": 2,
+  "name": "conquest_tracker",
+  "qrList": [
+    {
+      "id": 1,
+      "label": "conquest_state_sync",
+      "message": "/genraw /setvar key=conquest_sync {{lastMessage}} | ...",
+      "enabled": true,
+      "executeOnAi": true,
+      "executeOnUser": false,
+      "showInMenu": false,
+      "preventAutoExecute": false,
+      "executeWithSlash": true
+    }
+  ],
+  "externalQrList": [],
+  "importedPresetList": []
+}
+```
+
+The system generates a complete, working STscript tailored to the specific targets identified during Phase 3. For each target, the script includes an explicit `/setvar key=conquest_<key> value=<level>` call. The script parses the `<conq:...>` tag by splitting on `,` then `=`, and writes each target's level to its local variable. Keep the script flat (no complex nested loops) since STscript loop syntax varies across ST versions.
+
+**File 2 — Regex Extension Config** (`conquest_regex.json`):
+
+This is a SillyTavern Regex extension preset that hides the `<conq:...>` tag from the user's view by replacing it with an empty string in the chat display. The user imports this via ST's Regex extension menu.
+
+Template:
+
+```json
+[
+  {
+    "id": "conquest_tag_hide",
+    "scriptName": "conquest_tag_hide",
+    "findRegex": "<conq:[^>]+>",
+    "replaceString": "",
+    "trimStrings": [],
+    "placement": [1],
+    "disabled": false,
+    "markdownOnly": false,
+    "runOnEdit": false,
+    "onlyFormatDisplay": true,
+    "substituteRegex": 0,
+    "minPower": 1
+  }
+]
+```
+
+**User Instructions** (delivered alongside the files):
+
+1. Import the QR preset: ST menu → Quick Reply → Import → select `conquest_qr.json`.
+2. Import the Regex config: ST menu → Extensions → Regex → Import → select `conquest_regex.json`.
+3. Import the refactored character card as normal.
+4. Start chatting. Conquest state is automatically tracked — the `<conq:...>` tag is parsed by the QR script and written to local variables, then hidden from view by the Regex filter.
+5. To check current progress: type `/getvar conquest_<key>` in the chat input (e.g., `/getvar conquest_head`).
+6. To manually adjust progress: type `/setvar key=conquest_<key> value=<level>` (e.g., `/setvar key=conquest_head value=3`).

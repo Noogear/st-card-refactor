@@ -137,9 +137,25 @@ Replace modern fatigue with the exhaustion logic native to the character's own w
 
 **Injection points**: `system_prompt` (state machine directive — language follows Phase 2 preference, see format-spec.md §5A), `mes_example` (demonstrate phase-specific boundary reactions — see §4 archetype B)
 
----
+**Variant — Erosion Model** (see format-spec.md §5A-erosion):
 
-## Gene 6 — Opinionated & Spiky Personality
+When the character's established premise already includes intimate access (the dynamic is not a slow-burn from zero), the standard emotional-bonding progression can feel forced. In such cases, the user may request the erosion variant via the Phase 2 extra-rules mechanism.
+
+The erosion model redefines what each phase tracks:
+
+| Standard §5A | §5A-erosion |
+|---|---|
+| Resistance | Intact scope boundaries — {{char}} resists *expansion*, not the existing dynamic |
+| Reluctant yielding | Cracking under repeated exposure — involuntary responses contradict verbal resistance |
+| Post-intimacy processing | Normalization — resistance erodes through repetition, compliance becomes automatic |
+| Emotional craving | Physically driven seeking — {{char}} invites escalation from desensitized boundaries, not affection |
+| Love/relationship acknowledgment | Acceptance of the dynamic's nature — ownership, defiance, or calm matter-of-factness |
+
+**Language register progression** (defined in format-spec.md §5E Rule 5 extras):
+- Early phases: euphemistic and metaphorical language
+- Late phases: direct anatomical terminology and crude expressions — the register matches the character's decreasing inhibition
+
+> **When to note**: If Phase 1 analysis reveals the character's premise involves an established intimate dynamic, mention in the character brief that the erosion variant exists as an alternative to standard §5A. Do not activate it — only the user can request it.
 
 **Purpose**: Give the character backbone, contradictions, and realistic emotional complexity.
 
@@ -152,3 +168,31 @@ Replace modern fatigue with the exhaustion logic native to the character's own w
 - Taboo: A character who is always right, always forgiving, and never annoying.
 
 **Injection points**: `description` (personality tags — see format-spec.md §1), `mes_example` (demonstrate argument / double-standard — see §4). **Complements**: §5C-i (Character Integrity) — Gene 6 shapes *how* the character resists (personality flavor), §5C-i defines *when* they resist (narrative pressure triggers).
+
+---
+
+## Gene 7 — Conquest & Progressive Acceptance
+
+**Purpose**: Introduce conquestable targets with independent resistance curves. The user must discover, probe, and gradually overcome each target's resistance through sustained narrative effort — creating a metagame of exploration and incremental progress.
+
+**Applies to**: Characters whose card features at least one of: (a) body zones with varying sensitivity/accessibility, (b) territories or regions that can be brought under control, (c) factions or populations that can be won over, (d) relational dynamics with built-in resistance points. Pure fluff/slice-of-life cards with no natural resistance structure should skip this gene.
+
+**How it works**: During Phase 3, the system analyzes the card's description, scenario, and personality to identify conquestable targets. Each target receives:
+- **Difficulty rating**: How hard it is to make progress (derived from the character's personality, the target's nature, and the scenario's power dynamics).
+- **Acceptance curve**: A 5-level progression from active resistance → grudging tolerance → passive acceptance → active cooperation → full loyalty/sensitivity.
+- **Discovery hint**: A vague contextual clue the user can pick up on — never a direct list of targets.
+
+**Rules**:
+- **Independent curves**: Each target progresses independently. Advancing one target does NOT automatically advance others — some may regress if neglected or if resources/attention are diverted.
+- **Heterogeneous difficulty**: Not all targets are equally hard. A character may have one easy zone (gained in 1–2 exchanges) and one nearly impossible zone (requires sustained narrative effort across many exchanges). The difficulty spread creates exploration incentive.
+- **Discovery-based**: The system never lists all conquestable targets upfront. Instead, contextual hints appear in {{char}}'s reactions — a flinch at a specific touch, a territorial comment about a region, a faction leader's skeptical glance. The user must probe and experiment.
+- **Regression on neglect**: Targets at lower acceptance levels decay faster than those at higher levels. A barely-tolerated zone forgotten for several exchanges may revert to active resistance. A fully-accepted zone is nearly permanent.
+- **Authentic resistance**: Each target's resistance must be derived from the character's personality, backstory, and the scenario's internal logic — not from a generic template. A proud character's resistance to certain body zones comes from pride, not generic shyness. A conquered territory's resistance comes from cultural inertia, not arbitrary stubbornness.
+- **Cumulative reward**: As more targets reach higher acceptance levels, the overall dynamic shifts. When a critical mass of targets is accepted, {{char}}'s baseline disposition toward {{user}} warms — not because they've developed feelings, but because the accumulated concessions change the power balance.
+- **Cross-target interaction**: Some targets may influence others. Conquering a key territory might lower the difficulty of adjacent ones. Accepting one body zone might make a related zone easier — or harder (defensive compensation). Derive interactions from logical relationships between targets.
+
+**Injection points**: `description` (conquestable target traits — see format-spec.md §1), `scenario` (territory/faction context), `mes_example` (demonstrate resistance and partial acceptance — see §4), `system_prompt` (conquest directive — see format-spec.md §5F). **Complements**: Gene 5 (Slow Burn) — Gene 5 governs the emotional arc of the relationship overall; Gene 7 governs specific targets within that arc. They operate on different axes and can coexist.
+
+**Persistence dependency**: Gene 7's conquest state is tracked via **SillyTavern local variables** (`{{.conquest_<key>}}`). The refactored card's `system_prompt` references these variables so the LLM always reads the current progress. Variables are persisted in the chat metadata file (cross-session). A companion Quick Reply script (auto-generated in Phase 5) parses `<conq:...>` tags from AI responses and writes to variables; a Regex config hides the tags from the user. **Without these companion files, conquest progress degrades to implicit context-window memory and will be lost when older messages are truncated.**
+
+> **When to suggest**: If Phase 1 analysis detects the card has natural conquestable structures — body zones with varying sensitivity, territories with governance potential, factions with resistance, or relational dynamics with explicit resistance points — mention in the character brief that Gene 7 exists. Do not auto-activate — the user must select it or request it via extra rules.
