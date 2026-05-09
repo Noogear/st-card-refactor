@@ -289,7 +289,7 @@ When Gene 7 (Conquest) was selected, OR the user enabled State Tracking Variable
 
 A SillyTavern Quick Reply preset that auto-triggers after every AI response. It parses all state-update tags (`<conq:...>`, `<state:...>`, `<secret:...>`) and writes values to ST local variables via `/setvar`.
 
-The system generates a complete, working STscript tailored to the specific card. The script uses `/quiet-infer` (preferred) or `/genraw` (fallback for older ST versions) for any state tracking that requires background AI inference (e.g., mood tracking). Conquest parsing is deterministic string parsing and does not need AI inference.
+The system generates a complete, working STscript tailored to the specific card. All slash commands are concatenated with `\n` in a single `message` string per QR entry. The `message` field is the serialized STscript that ST executes line-by-line.
 
 Template structure (the system fills in the actual target keys, secret names, etc. from the card's profile):
 
@@ -297,57 +297,88 @@ Template structure (the system fills in the actual target keys, secret names, et
 {
   "version": 2,
   "name": "state_tracker",
+  "disableSend": false,
+  "placeBeforeInput": false,
+  "injectInput": false,
+  "color": "transparent",
+  "onlyBorderColor": false,
   "qrList": [
     {
       "id": 1,
+      "icon": "",
+      "showLabel": false,
       "label": "state_sync",
-      "message": "/quiet-infer [System: ...]",
-      "enabled": true,
-      "executeOnAi": true,
-      "executeOnUser": false,
-      "showInMenu": false,
+      "title": "Parse state-update tags and sync variables",
+      "message": "/let key=raw {{lastMessage}}\n/if left={{getvar::raw}} rule=in right=\"<conq:\" {: ... :}\n/if left={{getvar::raw}} rule=in right=\"<state:\" {: ... :}\n/if left={{getvar::raw}} rule=in right=\"<secret:\" {: ... :}\n/decvar event_cooldown",
+      "contextList": [],
       "preventAutoExecute": false,
-      "executeWithSlash": true
+      "isHidden": true,
+      "executeOnStartup": false,
+      "executeOnUser": false,
+      "executeOnAi": true,
+      "executeOnChatChange": false,
+      "executeOnGroupMemberDraft": false,
+      "executeOnNewChat": false,
+      "executeBeforeGeneration": false,
+      "automationId": ""
     }
   ],
-  "externalQrList": [],
-  "importedPresetList": []
+  "idIndex": 2
 }
 ```
 
+> **Key format rules** (verified against ST source `QuickReplySet.toJSON()` / `QuickReply.toJSON()`):
+> - `qrList[]` is the array of QR entries — NOT `scripts[]`
+> - `message` is a **single string** with all commands joined by `\n` — NOT an array of command objects
+> - `executeOnAi: true` makes the QR auto-fire after every AI response
+> - `isHidden: true` hides the QR button from the chat bar (it runs silently)
+> - `preventAutoExecute: false` is required for auto-execution to work
+> - `idIndex` should be greater than the highest `id` in `qrList`
+> - Do NOT include fields that don't exist in the source (e.g., `enabled`, `showInMenu`, `executeWithSlash`, `externalQrList`, `importedPresetList`)
+
 **Script generation rules**:
-- For each conquest target: parse `<conq:...>` tag, extract `key=level` pairs, run `/setvar key=conquest_<key> value=<level>`
-- For state tracking: parse `<state:...>` tag, extract `key=value` pairs, run `/setvar key=<key> value=<value>`
-- For secret discovery: parse `<secret:...>` tag, extract `name=1` pairs, run `/setvar key=secret_<name> value=1`
+- For each conquest target: parse `<conq:...>` tag, extract `key=level` pairs, run `/setvar key=conquest_<key> <level>`
+- For state tracking: parse `<state:...>` tag, extract `key=value` pairs, run `/setvar key=<key> <value>`
+- For secret discovery: parse `<secret:...>` tag, extract `name=1` pairs, run `/setvar key=secret_<name> 1`
 - Keep the script flat (no complex nested loops) — STscript loop syntax varies across ST versions
 - Use `/silent` prefix where available to avoid outputting parse results to chat
+- `/setvar` syntax: `/setvar key=<name> <value>` — the value is an **unnamed argument**, NOT `value=<val>`
 
 **File 2 — Regex Extension Config** (`tag_hider_regex.json`):
 
-A SillyTavern Regex extension preset that hides ALL state-update tags from the user's view. Uses `onlyFormatDisplay: true` — the tags are hidden from display only, NOT removed from the raw data the AI sees. This is critical: the AI must still see the tags to communicate state changes.
+A SillyTavern Regex extension preset that hides ALL state-update tags from the user's view. Uses `markdownOnly: true` — the tags are hidden from display only, NOT removed from the raw data the AI sees. This is critical: the AI must still see the tags to communicate state changes.
+
+> **Field name note** (verified against ST source `char-data.js` typedef `RegexScriptData`): The UI checkbox label says "Only Format Display" but the **actual JSON property name is `markdownOnly`**, NOT `onlyFormatDisplay`. Using the wrong field name will cause the setting to be silently ignored.
 
 Template:
 
 ```json
 [
   {
-    "id": "tag_hider",
+    "id": 1,
     "scriptName": "tag_hider",
     "findRegex": "<(conq|state|secret):[^>]+>",
     "replaceString": "",
     "trimStrings": [],
     "placement": [1],
     "disabled": false,
-    "markdownOnly": false,
-    "runOnEdit": false,
-    "onlyFormatDisplay": true,
+    "markdownOnly": true,
+    "promptOnly": false,
     "substituteRegex": 0,
-    "minPower": 1
+    "askForPlacement": false,
+    "runOnEdit": false,
+    "minPowerLevel": 0
   }
 ]
 ```
 
 > Single regex pattern `<(conq|state|secret):[^>]+>` matches all three tag types. If only conquest is active (no state tracking), the pattern still works — it simply won't match any `<state:...>` or `<secret:...>` tags.
+
+> **Key field rules** (verified against ST source):
+> - `markdownOnly: true` — hides tags from display only (not from AI context). This is the CORRECT field name; `onlyFormatDisplay` does NOT exist in the source code.
+> - `id` — must be a **number** (integer), NOT a string.
+> - `minPowerLevel` — NOT `minPower`.
+> - `placement: [1]` means "replace in display" (1 = display). Use `[1, 2]` for display+AI if needed, but `[1]` is the safe default for tag hiding.
 
 #### Output Folder Structure
 

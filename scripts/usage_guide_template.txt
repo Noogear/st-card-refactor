@@ -51,13 +51,11 @@ to see the imported version appear alongside the original.
 {QR_SETUP}
 
 To import a Quick Reply preset:
-1. In SillyTavern, open the chat bar area.
-2. Click the Quick Reply button (usually looks like a lightning bolt ⚡ icon).
-3. Click the gear icon ⚙ to open Quick Reply settings.
-4. Click "Import Preset" and select the .json file.
-5. The preset should now be active. Verify by checking that the preset name
-   appears in the Quick Reply preset list.
-6. IMPORTANT: Ensure "Auto-exec" is enabled for the imported preset so that
+1. In SillyTavern, open the ⚡ Quick Reply settings (click the lightning bolt icon
+   in the chat bar area, then the gear ⚙ icon).
+2. Click the "Import" button and select the .json file.
+3. The preset should now appear in the QR preset list.
+4. In the preset settings, ensure "Auto-exec on AI message" is enabled so that
    the QR scripts fire automatically after every AI response.
 
 To verify the preset is working:
@@ -74,14 +72,15 @@ To verify the preset is working:
 To import a Regex configuration:
 1. In SillyTavern, open the Extensions panel (puzzle piece icon 🧩).
 2. Find the "Regex" extension and click its settings/gear icon.
-3. Click "Import" and select the regex .json file.
+3. Click "Import Script" and select the regex .json file.
 4. The regex should now be active. Verify that <conq:...> and/or <state:...>
    tags are no longer visible in the chat display.
 
-Note: The regex uses "onlyFormatDisplay: true" which means it only hides the
-tags from view — it does NOT modify the actual message content sent to the AI.
-This is important: the AI still sees the tags in the raw message data, which
-is how it communicates state changes to the Quick Reply parser.
+Note: The regex uses "markdownOnly: true" (shown as "Only Format Display" in
+the ST UI) which means it only hides the tags from view — it does NOT modify
+the actual message content sent to the AI. This is important: the AI still
+sees the tags in the raw message data, which is how it communicates state
+changes to the Quick Reply parser.
 
 
 ================================================================================
@@ -92,17 +91,17 @@ is how it communicates state changes to the Quick Reply parser.
 
 To inspect the current value of any tracked variable, type in the chat input:
 
-  /getvar variable_name
+  /getvar key=variable_name
 
 Examples:
-  /getvar conquest_head        → shows current conquest level for "head"
-  /getvar conquest_waist       → shows current conquest level for "waist"
-  /getvar rel_stage            → shows current relationship stage (1-5)
-  /getvar mood                 → shows current character mood
+  /getvar key=conquest_head        → shows current conquest level for "head"
+  /getvar key=conquest_waist       → shows current conquest level for "waist"
+  /getvar key=rel_stage            → shows current relationship stage (1-5)
+  /getvar key=mood                 → shows current character mood
 
 To see ALL variables for the current chat:
 
-  /getvar *
+  /listvar
 
 This lists every variable stored in the current chat's metadata.
 
@@ -113,14 +112,14 @@ This lists every variable stored in the current chat's metadata.
 
 You can manually set any variable value using the chat input:
 
-  /setvar key=variable_name value=new_value
+  /setvar key=variable_name new_value
 
 Examples:
-  /setvar key=conquest_head value=3     → set "head" conquest to level 3
-  /setvar key=rel_stage value=4         → set relationship to "close"
-  /setvar key=mood value=happy          → set mood to "happy"
-  /setvar key=event_cooldown value=0    → reset event cooldown
-  /setvar key=secret_1 value=1          → mark secret as "discovered"
+  /setvar key=conquest_head 3     → set "head" conquest to level 3
+  /setvar key=rel_stage 4         → set relationship to "close"
+  /setvar key=mood happy          → set mood to "happy"
+  /setvar key=event_cooldown 0    → reset event cooldown
+  /setvar key=secret_1 1          → mark secret as "discovered"
 
 This is useful for:
 - Testing specific states to see how the character responds.
@@ -129,7 +128,7 @@ This is useful for:
 - Recovering from a context reset where variables may have been lost.
 
 To delete a variable (resets to its fallback default):
-  /setvar key=variable_name value=
+  /flushvar variable_name
 
 
 ================================================================================
@@ -145,7 +144,8 @@ Problem: Variables are not updating after AI responses.
 
 Problem: <conq:> / <state:> / <secret:> tags are visible in chat.
 → Check that the Regex extension preset is imported and enabled.
-→ In Regex settings, verify "onlyFormatDisplay: true" is set.
+→ In Regex settings, verify "markdownOnly" (shown as "Only Format Display"
+  in the ST UI) is set to true.
 → Make sure the regex pattern matches the tag format exactly.
 
 Problem: Character seems to ignore conquest/state progress.
@@ -166,8 +166,11 @@ Problem: Anti-Degradation Author's Note not having any effect.
   from system_prompt).
 → The Author's Note is injected automatically by ST based on the depth and
   role settings in extensions.depth_prompt.
-→ If the user has a global Author's Note configured in ST settings, the
-  card-level depth_prompt will override it for this character.
+→ If the user has a global Author's Note configured in ST settings, both the
+  card-level depth_prompt and the global Author's Note are processed in
+  parallel (the card does NOT override the global one). Ensure the card's
+  depth_prompt content is self-contained and doesn't conflict with any
+  global Author's Note.
 
 Problem: The card uses a lot of tokens / context feels tight.
 → See Section 7 "Token Budget Notes" below.
@@ -186,19 +189,14 @@ Required:
   Required for: PHI Split feature.
 
 □ Quick Reply "Auto-execute" — ENABLED
-  Location: Quick Reply settings → gear icon → Auto-execute
+  Location: Quick Reply settings → gear icon → Auto-execute on AI message
   Effect: QR scripts fire automatically after every AI response.
   Required for: Conquest state tracking, state variable tracking.
 
 Recommended:
-□ "Strip trailing whitespace" — ENABLED
+□ "Trim Spaces" — ENABLED (default)
   Location: Settings → User Settings
-  Effect: Cleans up any trailing whitespace in AI responses.
-
-□ "Never-ending story" mode — DISABLED (unless the card explicitly uses it)
-  Location: Settings → AI → Context
-  Effect: Prevents ST from adding "narrator" style framing that may conflict
-  with the card's persona and style directives.
+  Effect: Trims trailing whitespace from AI responses (enabled by default).
 
 Optional:
 □ World Info / Lorebook depth settings — default values are usually fine.

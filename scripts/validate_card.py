@@ -55,8 +55,8 @@ ST_MACRO_PATTERNS = [
     r'\{\{roll:[^}]+\}\}',
     r'\{\{pick:[^}]+\}\}',
     r'\{\{[ij]var::[^}]+\}\}',
-    r'\{\{\.var\}\}',
-    r'\{\{\.var\|\|[^}]+\}\}',  # fallback syntax
+    r'\{\{\.[a-zA-Z_][a-zA-Z0-9_]*\}\}',         # {{.name}} shorthand
+    r'\{\{\.[a-zA-Z_][a-zA-Z0-9_]*\|\|[^}]+\}\}', # {{.name||fallback}} shorthand
     r'\{\{/if\}\}',
     r'\{\{if [^}]+\}\}',
     r'\{\{else\}\}',
