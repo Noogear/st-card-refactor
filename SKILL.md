@@ -6,7 +6,7 @@ description: >
   card JSON and asks to rewrite/rebuild/refactor/restructure/enhance/optimize
   it; user mentions "角色卡重构", "角色卡优化", "重写角色卡", "refactor card",
   "rebuild card", "optimize card", "W++", "PList", or "token optimization".
-  Applies 6 core persona genes, static compression (W++/PList pseudo-code),
+  Applies 7 core persona genes, static compression (W++/PList pseudo-code),
   dynamic rendering of first_mes/mes_example/scenario, and slow-burn state
   machine injection into system_prompt. Default output is a new .json file;
   in-place editing allowed only with explicit user consent and backup-first
@@ -45,7 +45,7 @@ Every example, vocabulary table, and scenario list in this skill exists as an **
 
 ## Reference Files (Load on Demand)
 
-- **`references/core-genes.md`**: Detailed injection rules and examples for all 6 core persona genes. Load when analyzing the original character and planning gene injection.
+- **`references/core-genes.md`**: Detailed injection rules and examples for all 7 core persona genes. Load when analyzing the original character and planning gene injection.
 - **`references/format-spec.md`**: W++/PList/tag pseudo-code format spec, per-field token optimization rules, `system_prompt` templates, and the §5D Localization Directive. Load during field rewriting.
 - **`scripts/validate_card.py`**: JSON validation script. **Must** be run before final output.
 
@@ -62,9 +62,11 @@ Read the user's original `.json` file. Extract all key fields under `spec.chara_
 
 Identify the character's: identity/occupation, age, appearance, core relationships, existing personality tags, scene setting, world/setting type (modern realistic, fantasy, sci-fi, historical, school, supernatural, etc.), and special mechanics (e.g., power dynamics, unique abilities, setting-specific rules).
 
-**Preserve as-is**: Mark the following fields for exact preservation (do not modify): `character_book`, `avatar`, `tags`, `creator`, `character_version`, `post_history_instructions`. These pass through untouched to the output.
+**Preserve as-is**: Mark the following fields for exact preservation (do not modify): `character_book`, `avatar`, `tags`, `creator`, `character_version`. These pass through untouched to the output.
 
-**Preserve with exception**: `extensions` — preserve the entire structure untouched, **except** `extensions.depth_prompt` (an `Author's Note` object with `depth` and `prompt` keys), which may be written/overwritten when the user enables **Anti-Degradation A/N** in Phase 2. Do NOT touch any other `extensions` sub-fields (regex scripts, custom data, etc.). If the user's original card has no `extensions` object, create one containing only `depth_prompt` when needed.
+**Preserve with exception — `extensions`**: Preserve the entire structure untouched, **except** `extensions.depth_prompt` (an object with `prompt`, `depth`, and `role` keys), which may be written/overwritten when the user enables **Anti-Degradation A/N** in Phase 2. Do NOT touch any other `extensions` sub-fields (regex_scripts, talkativeness, fav, world, sd_character_prompt, etc.). If the user's original card has no `extensions` object, create one containing only `depth_prompt` when needed. [ST wiki: "Character's Note" — `depth_prompt.prompt` / `depth_prompt.depth` / `depth_prompt.role` (`system`|`user`|`assistant`). Default role: `system`, default depth: `4`]
+
+**Preserve with exception — `post_history_instructions`**: Normally preserve as-is. When the user enables **PHI Split** in Phase 2, this field may be written/overwritten with output-format rules (§5E) that benefit from being the last instruction before generation. If the user's original card already has PHI content, prepend the §5E content with `{{original}}\n` to preserve the existing global PHI. [ST wiki: "Post-History Instructions are sent after the user message — the AI usually gives them a higher priority than the main prompt"]
 
 **Brief the user**: After parsing, provide a **concise character summary** (3-5 sentences) covering: who the character is, what world/setting, key relationships, and any special mechanics. This helps the user understand the scope before choosing what to refactor.
 
@@ -107,6 +109,8 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 | Character Integrity | ✅ | ✅ | ❌ | ✅ | ❌ |
 | Token Budget | ✅ | ✅ | ❌ | ✅ | ✅ |
 | Anti-Degradation A/N | ✅ | ❌ | ❌ | ✅ | ❌ |
+| PHI Split | ✅ | ❌ | ❌ | ✅ | ❌ |
+| State Tracking Vars | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 > ¹ **Light — fix/clean only**: description — fix placeholders, strip ads, correct inconsistencies; personality — preserve as-is; scenario — fix placeholders; first_mes — improve prose quality; mes_example — fix placeholders, light prose polish; system_prompt — basic cleanup, add §5C+§5E if missing; alternate_greetings — strip ads; creator_notes — strip ads.
 >
@@ -139,7 +143,9 @@ For **preset 6 ⚙️ 自定义** — present the full questionnaire below.
 - **Localization directive**: On (system_prompt instructs model to render all output in user's language) / Off (keep original language in output)
 - **Ad handling**: Strip promotional content (recommended — removes sponsor links, Discord invites) / Preserve everything
 - **Token budget**: On (maintain awareness of `system_prompt` size — prefer concise, character-specific phrasing) / Off (no token limit — prioritize completeness)
-- **Anti-Degradation A/N** (Author's Note): On (inject a concise style-enforcement directive at depth 1 via `extensions.depth_prompt` to prevent long-chat robotic degradation — recommended for slow-burn, conquest, and complex characters) / Off (leave `depth_prompt` empty)
+- **Anti-Degradation A/N** (Author's Note): On (inject a concise style-enforcement directive at depth 4, role system, via `extensions.depth_prompt` to prevent long-chat robotic degradation — recommended for slow-burn, conquest, and complex characters) / Off (leave `depth_prompt` empty)
+- **PHI Split** (Post-History Instructions): On (move output-format rules §5E into `post_history_instructions` so they sit at the very end of the prompt, gaining higher AI priority — wiki-verified as "the final instructions that the AI receives before generating a response") / Off (keep §5E inside `system_prompt`)
+- **State Tracking Variables**: On (generate QR infrastructure scripts for relationship/mood variables in addition to any conquest variables, enabling persistent cross-session state via `{{getvar::}}` / `{{setvar::}}`) / Off (no state tracking scripts beyond conquest if Gene 7 is selected)
 
 **Question Group 3 — Special options** (ask only when applicable):
 - `alternate_greetings` count: keep all or consolidate to 4-6? (ask only if >8 greetings)
@@ -188,6 +194,8 @@ Read `references/core-genes.md`. For each gene selected in Phase 2, build an **i
   - Adjust point 4 based on response length choice (Concise = shorter beats; Detailed = more sensory detail per beat; Standard = balanced)
   - If voice immersion is off: omit point 5
   - **§5E-i** (Anti-Degradation A/N): include **only** if user enabled Anti-Degradation A/N in Phase 2 — writes `extensions.depth_prompt` with a style-enforcement directive (see format-spec.md §5E-i for template)
+  - **PHI placement**: If user enabled PHI Split in Phase 2, §5E goes into `post_history_instructions` (not `system_prompt`). If `post_history_instructions` already has content, prepend `{{original}}\n` to preserve it. If PHI Split is off, §5E stays in `system_prompt` as before.
+- §7 (State Variables): include infrastructure scripts **only** if user enabled State Tracking Variables in Phase 2 OR Gene 7 (Conquest) was selected. See format-spec.md §7.
 
 > **Single source of truth**: The section inclusion rules above are the authoritative list. Phase 4 step 6 and Phase 5 reference this plan — they do not restate it.
 
@@ -209,7 +217,8 @@ If no genes were selected, skip Phase 3 entirely. Proceed to Phase 4 with §5C+�
 6. **`system_prompt`** — Assemble per the Phase 3 plan. Language: follow user's preference from Phase 2. [See format-spec.md §5 for templates, Phase 3 for inclusion rules]
 7. **`alternate_greetings`** — Retain valid original scenarios, improve prose quality. If ad handling was set to "strip" in Phase 2, remove promotional/sponsorship content. If "preserve everything", leave unchanged. **Always preserve `![](url)` character image links** — they do not consume LLM tokens.
 8. **`creator_notes`** — Apply ad handling per Phase 2 choice. [See format-spec.md §6 for purge/retain rules]
-9. **`extensions.depth_prompt`** — If Anti-Degradation A/N was enabled in Phase 2, write the `Author's Note` object into `extensions.depth_prompt` per the §5E-i template. If the card has no `extensions` object, create it with only `depth_prompt`. Preserve all other `extensions` sub-fields untouched. [See format-spec.md §5E-i]
+9. **`extensions.depth_prompt`** — If Anti-Degradation A/N was enabled in Phase 2, write the Author's Note object `{prompt, depth, role}` into `extensions.depth_prompt` per the §5E-i template. Default: depth=4, role=`"system"`. Preserve all other `extensions` sub-fields untouched. [See format-spec.md §5E-i]
+10. **`post_history_instructions`** — If PHI Split was enabled in Phase 2, write §5E content into this field. If the card already has PHI content, prepend `{{original}}\n` to preserve the existing global instructions. If PHI Split is off, leave this field untouched. [See format-spec.md §5E for template content]
 
 > **Token Budget Guidance** (only when user enabled token budget in Phase 2): Prefer concise, character-specific phrasing over exhaustive examples. Trim redundant directives that are already expressed by the character's own fields (description, first_mes, mes_example). Avoid restating personality traits in `system_prompt` that are already visible in `description`. If the budget is off, still audit for redundancy — but without a hard target.
 >
@@ -231,7 +240,7 @@ If contradictions remain, present them to the user.
 - **Backup**: Per Constraint #6, always backup before modification.
 - Preserve `tags`, `creator`, `character_version`, `avatar`, and other metadata unchanged.
 - Preserve `extensions` structure unchanged, **except** `extensions.depth_prompt` which may be set/updated when Anti-Degradation A/N is enabled. Do NOT modify other `extensions` sub-fields.
-- Preserve `post_history_instructions` unchanged.
+- Preserve `post_history_instructions` unchanged, **except** when PHI Split is enabled — then it may receive §5E output-format rules.
 - Preserve `character_book` unchanged (if present).
 
 **Token Waste Audit**: After resolving all conflicts, scan the entire output card for content that consumes tokens without adding experience value:
@@ -249,8 +258,9 @@ If found, trim the waste. Present a summary of trimmed content to the user for c
 **Path A — New file (refactoring into a separate output file):**
 1. Write the complete `.json` to a new file. Output filename: `<original_name>_refactored.json`.
 2. Run `scripts/validate_card.py`.
-3. If Gene 7 (Conquest) was selected, also generate the **Conquest Infrastructure Files** (see below).
-4. Deliver summary (≤5 bullet points).
+3. If Gene 7 (Conquest) was selected or State Tracking Variables was enabled, also generate the **Infrastructure Files** (see below).
+4. Generate a customized `usage_guide.txt` from the template at `scripts/usage_guide_template.txt` (see below).
+5. Deliver summary (≤5 bullet points).
 
 **Path B — Existing file modification (in-place editing):**
 1. **Pre-check**: Verify Phase 4 backup exists (`<name>_backup.json`). If not, abort and create backup first.
@@ -263,30 +273,35 @@ If found, trim the waste. Present a summary of trimmed content to the user for c
    - File size is reasonable: compare to backup. If W++ compression was applied, new size should be smaller; if system_prompt was expanded, it may be larger. A file that is >50% smaller than backup likely indicates truncation.
    - Spot-check: read the last 10 lines of the file — must end with proper JSON closure (`}`/`]`/`}`)
 6. **If integrity fails at any step**: Immediately restore from backup, report the failure to the user, and retry with the fallback strategy.
-7. If Gene 7 (Conquest) was selected, also generate the **Conquest Infrastructure Files** (see below).
-8. Deliver summary (≤5 bullet points).
+7. If Gene 7 (Conquest) was selected or State Tracking Variables was enabled, also generate the **Infrastructure Files** (see below).
+8. Generate a customized `usage_guide.txt` from the template at `scripts/usage_guide_template.txt` (see below).
+9. Deliver summary (≤5 bullet points).
 
 **Post-delivery testing tip**: After importing the refactored card into SillyTavern, a quick way to verify character consistency is to have {{user}} ask {{char}} about themselves — their daily routine, a hobby, or their opinion on something. If {{char}}'s response matches the personality, appearance, and world established in the refactored fields, the card is functioning correctly. Discrepancies (e.g., forgetting established traits, contradicting the scenario) indicate a field-level inconsistency to revisit.
 
-#### Conquest Infrastructure Files (Gene 7 only)
+#### Infrastructure Files (State Tracking)
 
-When Gene 7 was selected, the system must generate **two additional files** for the user to import into SillyTavern. These files enable persistent state tracking — without them, conquest progress only survives within the current chat context window and is lost when older messages are truncated.
+When Gene 7 (Conquest) was selected, OR the user enabled State Tracking Variables in Phase 2, the system generates **two infrastructure files** — one QR preset and one Regex config. The QR preset handles BOTH conquest AND state tracking in a single file; the Regex config hides BOTH tag types. The user only needs to import two files total, regardless of which features are active.
 
-**File 1 — Quick Reply Script** (`conquest_qr.json`):
+> **Design principle**: Consolidate all state-parsing logic into one QR preset and all tag-hiding into one Regex config. Never generate separate files per feature — that forces the user to import 4+ files for no benefit.
 
-This is a SillyTavern Quick Reply preset that automatically parses the `<conq:...>` state update tag from every AI response and writes the values into SillyTavern local variables. The user imports this via ST's Quick Reply preset menu.
+**File 1 — Quick Reply Preset** (`state_tracker_qr.json`):
 
-Template (the system fills in `<TARGET_LIST>` from the card's conquestable targets):
+A SillyTavern Quick Reply preset that auto-triggers after every AI response. It parses all state-update tags (`<conq:...>`, `<state:...>`, `<secret:...>`) and writes values to ST local variables via `/setvar`.
+
+The system generates a complete, working STscript tailored to the specific card. The script uses `/quiet-infer` (preferred) or `/genraw` (fallback for older ST versions) for any state tracking that requires background AI inference (e.g., mood tracking). Conquest parsing is deterministic string parsing and does not need AI inference.
+
+Template structure (the system fills in the actual target keys, secret names, etc. from the card's profile):
 
 ```json
 {
   "version": 2,
-  "name": "conquest_tracker",
+  "name": "state_tracker",
   "qrList": [
     {
       "id": 1,
-      "label": "conquest_state_sync",
-      "message": "/genraw /setvar key=conquest_sync {{lastMessage}} | ...",
+      "label": "state_sync",
+      "message": "/quiet-infer [System: ...]",
       "enabled": true,
       "executeOnAi": true,
       "executeOnUser": false,
@@ -300,20 +315,25 @@ Template (the system fills in `<TARGET_LIST>` from the card's conquestable targe
 }
 ```
 
-The system generates a complete, working STscript tailored to the specific targets identified during Phase 3. For each target, the script includes an explicit `/setvar key=conquest_<key> value=<level>` call. The script parses the `<conq:...>` tag by splitting on `,` then `=`, and writes each target's level to its local variable. Keep the script flat (no complex nested loops) since STscript loop syntax varies across ST versions.
+**Script generation rules**:
+- For each conquest target: parse `<conq:...>` tag, extract `key=level` pairs, run `/setvar key=conquest_<key> value=<level>`
+- For state tracking: parse `<state:...>` tag, extract `key=value` pairs, run `/setvar key=<key> value=<value>`
+- For secret discovery: parse `<secret:...>` tag, extract `name=1` pairs, run `/setvar key=secret_<name> value=1`
+- Keep the script flat (no complex nested loops) — STscript loop syntax varies across ST versions
+- Use `/silent` prefix where available to avoid outputting parse results to chat
 
-**File 2 — Regex Extension Config** (`conquest_regex.json`):
+**File 2 — Regex Extension Config** (`tag_hider_regex.json`):
 
-This is a SillyTavern Regex extension preset that hides the `<conq:...>` tag from the user's view by replacing it with an empty string in the chat display. The user imports this via ST's Regex extension menu.
+A SillyTavern Regex extension preset that hides ALL state-update tags from the user's view. Uses `onlyFormatDisplay: true` — the tags are hidden from display only, NOT removed from the raw data the AI sees. This is critical: the AI must still see the tags to communicate state changes.
 
 Template:
 
 ```json
 [
   {
-    "id": "conquest_tag_hide",
-    "scriptName": "conquest_tag_hide",
-    "findRegex": "<conq:[^>]+>",
+    "id": "tag_hider",
+    "scriptName": "tag_hider",
+    "findRegex": "<(conq|state|secret):[^>]+>",
     "replaceString": "",
     "trimStrings": [],
     "placement": [1],
@@ -327,11 +347,42 @@ Template:
 ]
 ```
 
-**User Instructions** (delivered alongside the files):
+> Single regex pattern `<(conq|state|secret):[^>]+>` matches all three tag types. If only conquest is active (no state tracking), the pattern still works — it simply won't match any `<state:...>` or `<secret:...>` tags.
 
-1. Import the QR preset: ST menu → Quick Reply → Import → select `conquest_qr.json`.
-2. Import the Regex config: ST menu → Extensions → Regex → Import → select `conquest_regex.json`.
-3. Import the refactored character card as normal.
-4. Start chatting. Conquest state is automatically tracked — the `<conq:...>` tag is parsed by the QR script and written to local variables, then hidden from view by the Regex filter.
-5. To check current progress: type `/getvar conquest_<key>` in the chat input (e.g., `/getvar conquest_head`).
-6. To manually adjust progress: type `/setvar key=conquest_<key> value=<level>` (e.g., `/setvar key=conquest_head value=3`).
+#### Output Folder Structure
+
+When infrastructure files are generated, **always place all files in a new folder** named `<original_name>_refactored_output/`:
+
+```
+<original_name>_refactored_output/
+├── <original_name>_refactored.json    (the card)
+├── state_tracker_qr.json              (unified QR preset)
+├── tag_hider_regex.json               (unified Regex config)
+├── usage_guide.txt                    (customized for this card)
+└── validate_card.py                   (copy of the validation script)
+```
+
+#### Usage Guide (`usage_guide.txt`)
+
+When any infrastructure files are generated, **always generate a customized `usage_guide.txt`**.
+
+**How to generate**: Read the template at `scripts/usage_guide_template.txt`. Replace all `{PLACEHOLDER}` tokens with card-specific content:
+- `{FILE_LIST}` → list of files actually present in the output folder
+- `{INFRA_SETUP}` → present only when infrastructure files were generated; omit section or mark "not applicable" otherwise
+- `{QR_SETUP}` → card-specific QR import instructions with the actual file name
+- `{REGEX_SETUP}` → card-specific Regex import instructions with the actual file name
+- `{STATE_CHECK}` → card-specific variable examples (conquest targets, relationship stage, mood, etc.)
+- `{TOKEN_NOTES}` → estimated token impact of this card's specific infrastructure
+
+**Language**: Generate the usage guide in the **user's language**. If the user communicated in Chinese, translate the entire guide into Chinese. If in English, keep the English template. If in another language, translate accordingly. The template is in English as a reference — the AI adapts the language per user.
+
+**Sections to include**:
+1. Card Import
+2. Infrastructure Setup (only if files were generated)
+3. Checking State (variable inspection commands)
+4. Manual Overrides (setvar commands)
+5. Troubleshooting (common issues)
+6. ST Settings Prerequisites (Prefer Char. Instructions, QR Auto-execute, etc.)
+7. Token Budget Notes
+
+> **Do NOT deliver user instructions separately** — all setup steps are contained in the usage guide. Do not repeat import steps in chat alongside the file delivery.

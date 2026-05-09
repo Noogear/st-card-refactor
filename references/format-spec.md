@@ -14,6 +14,7 @@
   - [5E — Response Rules](#5e--response-rules-ai-obligations--formatting)
   - [5E-i — Anti-Degradation Directive](#5ei--anti-degradation-directive)
   - [5F — Conquest Directive](#5f--conquest-directive)
+- [§7 — State Variable Infrastructure](#7--state-variable-infrastructure)
 
 ---
 
@@ -362,9 +363,11 @@ All character output — dialogue, narration, inner monologue, environmental des
 
 ### 5E-i — Anti-Degradation Directive
 
-> **Conditional**: Write into `extensions.depth_prompt` ONLY when the user enabled Anti-Degradation A/N in Phase 2. This is a concise Author's Note injected at depth 1 (closest to latest message) that reinforces stylistic integrity during long chats — combating the tendency of LLMs to drift into robotic summarization and structural repetition as context grows.
+> **Conditional**: Write into `extensions.depth_prompt` ONLY when the user enabled Anti-Degradation A/N in Phase 2. This is a concise Author's Note injected at depth 4 (the ST wiki default for "Character's Note") that reinforces stylistic integrity during long chats — combating the tendency of LLMs to drift into robotic summarization and structural repetition as context grows.
 
 > **Design principle**: This directive should **complement** §5E, not duplicate it. §5E defines the rules; §5E-i is a terse enforcement reminder aimed at counteracting degradation patterns. Keep it short — every token here recurs in every turn.
+
+> **ST wiki reference**: The `extensions.depth_prompt` field is displayed in the UI as "Character's Note". It has three properties: `prompt` (string), `depth` (number — number of messages from the end; 0 = after the last message), and `role` ("system" | "user" | "assistant"). The wiki says: "The closer the Author's Note is to the bottom of the prompt, the more impact it has on the next AI response." Default role: `"system"`, default depth: `4`.
 
 **Template** (adapt language to match the card's output language; provide both variants):
 
@@ -373,8 +376,9 @@ All character output — dialogue, narration, inner monologue, environmental des
 ```json
 "extensions": {
   "depth_prompt": {
-    "depth": 1,
-    "prompt": "STYLE ENFORCEMENT — You are narrating an ongoing scene. NEVER output: plot summaries, bullet recaps, 'the conversation continues' filler, mechanical status updates, or structural scaffolding. Each response is a live narrative beat — sensory, in-character, emotionally present. Vary sentence rhythm. Do not repeat the previous beat's structure. When {{char}} shows emotion, use physical sensation and action — never label it ('she felt sad'). Dialogue-first. Concise. Alive."
+    "prompt": "STYLE ENFORCEMENT — You are narrating an ongoing scene. NEVER output: plot summaries, bullet recaps, 'the conversation continues' filler, mechanical status updates, or structural scaffolding. Each response is a live narrative beat — sensory, in-character, emotionally present. Vary sentence rhythm. Do not repeat the previous beat's structure. When {{char}} shows emotion, use physical sensation and action — never label it ('she felt sad'). Dialogue-first. Concise. Alive.",
+    "depth": 4,
+    "role": "system"
   }
 }
 ```
@@ -384,15 +388,18 @@ All character output — dialogue, narration, inner monologue, environmental des
 ```json
 "extensions": {
   "depth_prompt": {
-    "depth": 1,
-    "prompt": "风格强制 — 你正在叙述一个进行中的场景。绝对不要输出：情节总结、要点回顾、'对话继续'式的填充、机械化状态更新、或结构性脚手架。每条回复都是一个实时的叙事节拍——有感官细节、角色化、情感在场。变换句式节奏。不要重复上一个节拍的结构。当{{char}}表露情绪时，用身体感受和动作来呈现——绝不要贴标签（'她感到难过'）。对话优先。简洁。鲜活。"
+    "prompt": "风格强制 — 你正在叙述一个进行中的场景。绝对不要输出：情节总结、要点回顾、'对话继续'式的填充、机械化状态更新、或结构性脚手架。每条回复都是一个实时的叙事节拍——有感官细节、角色化、情感在场。变换句式节奏。不要重复上一个节拍的结构。当{{char}}表露情绪时，用身体感受和动作来呈现——绝不要贴标签（'她感到难过'）。对话优先。简洁。鲜活。",
+    "depth": 4,
+    "role": "system"
   }
 }
 ```
 
 **Localization-aware output**: If the card's output language is English, use the English variant. If Chinese, use the Chinese variant. For other languages, translate the English variant naturally — preserve the instructional tone and the prohibition list's specificity.
 
-**Depth value**: Always `1` (maximum proximity to latest message for anti-degradation effectiveness). Do not change this value unless the user explicitly requests a different depth.
+**Depth value**: Default `4` (ST wiki default for Character's Note). Closer to the bottom = more impact. Do not change this value unless the user explicitly requests a different depth. The wiki confirms depth 0 means "after the last message" (maximum impact but can interfere with user input).
+
+**Role value**: Default `"system"` (ST default). Do not change unless the user requests it.
 
 **Conflict with global Author's Note**: If the user has a global A/N configured in ST settings, the card-level `depth_prompt` will override it for this character. Mention this to the user during Phase 4 delivery so they are aware.
 
@@ -534,5 +541,143 @@ Purge only **promotional/advertising content**. Preserve all CSS, HTML styling, 
 - `\*\*Full image set on.*` (image set promotion lines)
 
 **Do NOT match**: General `![](url)` image markdown (character images) or `<style>`/`<div>` blocks (CSS styling).
+
+---
+
+## §7 — State Variable Infrastructure
+
+> **Conditional**: Include infrastructure files ONLY when the user enabled State Tracking Variables in Phase 2, OR Gene 7 (Conquest) was selected. This section defines how ST local variables are used to persist cross-session state that the LLM context window alone cannot reliably maintain.
+
+### Rationale
+
+LLM context windows have finite capacity. As conversations grow, older messages are truncated, and with them any state the model was tracking through narrative memory alone (relationship stage, emotional state, discovered facts). SillyTavern's local variable system (`{{getvar::}}` / `{{setvar::}}` / `{{.var}}`) solves this by storing state in `chat_metadata` within the chat JSON file — surviving context truncation, session restarts, and swipe regenerations.
+
+**Wiki reference**: ST Macros documentation confirms full variable support:
+- `{{getvar::name}}` / `{{setvar::name::value}}` — local (chat-scoped) variables
+- `{{.name}}` / `{{.name = value}}` — shorthand syntax
+- `{{.name || fallback}}` — logical OR with fallback (used in conquest `{{.conquest_key||0}}`)
+- `{{incvar::name}}` / `{{decvar::name}}` — numeric operations
+- Variables are stored in `chat_metadata.variables` and persist across sessions
+
+### Variable Naming Conventions
+
+All card-generated variables must use a prefix to avoid collision with user/system variables:
+
+| Prefix | Scope | Example | Purpose |
+|---|---|---|---|
+| `conquest_` | Per-target | `conquest_head` | Conquest acceptance level (0-5) |
+| `rel_` | Card-level | `rel_stage` | Relationship temperature (1-5) |
+| `mood` | Card-level | `mood` | Current emotional state (string) |
+| `event_` | Card-level | `event_cooldown` | Random event cooldown counter |
+| `secret_` | Per-secret | `secret_1` | Discovery flag (0/1) |
+| `turn_` | Card-level | `turn_count` | Message counter for timed mechanics |
+
+### Variable Definitions
+
+#### Conquest Variables (Gene 7)
+
+Each conquestable target gets a variable `conquest_<key>` with values 0-5:
+- `0` or unset → target not yet discovered
+- `1` → Active Resistance
+- `2` → Grudging Tolerance
+- `3` → Passive Acceptance
+- `4` → Active Cooperation
+- `5` → Full Integration
+
+The LLM reads the current value via `{{.conquest_<key>||0}}` in the system_prompt TARGET_MAP.
+The LLM writes updates by outputting `<conq:key1=level,key2=level,...>` at the end of each response.
+A QR script (auto-executed via `executeOnAi: true`) parses the tag and runs `/setvar key=conquest_<key> value=<level>` for each target.
+
+#### Relationship Variables (State Tracking)
+
+- `rel_stage` (1-5): Overall relationship temperature
+  - 1 = Stranger
+  - 2 = Acquaintance
+  - 3 = Friendly
+  - 4 = Close
+  - 5 = Intimate
+- Read in system_prompt: `{{.rel_stage||1}}`
+- Written by QR script parsing `<state:rel_stage=N,...>` tag
+
+#### Mood Variables (State Tracking)
+
+- `mood` (string): Current character emotional state
+- Read in system_prompt: `{{.mood||neutral}}`
+- Written by QR script. Valid values: `neutral`, `happy`, `angry`, `sad`, `anxious`, `excited`, `tired`, `suspicious`, `grateful`, `embarrassed`, `amused`, `conflicted`
+
+#### Event Cooldown (State Tracking)
+
+- `event_cooldown` (number): Messages remaining before the next random event can fire
+- Read in system_prompt: `{{.event_cooldown||0}}`
+- Decremented by QR script each turn via `{{decvar::event_cooldown}}`
+- §5B Random Events section should check `{{.event_cooldown||0}}` and skip event injection if > 0
+
+#### Secret Discovery Variables (State Tracking)
+
+- `secret_<name>` (0/1): Whether the user has discovered a specific secret in the card
+- Derived from the character's description — the system identifies discoverable secrets during Phase 3
+- Read in system_prompt: `{{.secret_<name>||0}}`
+- When the LLM determines the user has discovered a secret, it outputs `<secret:name=1>` tag
+- QR script parses and writes via `/setvar key=secret_<name> value=1`
+
+### QR Script Generation Rules
+
+1. **One QR preset per card** — all variable parsing is consolidated into a single QR preset file
+2. **executeOnAi: true** — auto-triggers after every AI message to parse state tags
+3. **Tag format** — state tags use XML-like syntax: `<conq:key=val,...>`, `<state:key=val,...>`, `<secret:name=1>`
+4. **Parsing logic** — the QR script:
+   - Extracts the last AI message via `{{lastMessage}}`
+   - Searches for each tag pattern using STscript string operations
+   - For each match, splits on `,` then `=`, and runs `/setvar key=<name> value=<value>`
+   - Uses `/silent` prefix to avoid outputting parse results to chat
+5. **Fallback safety** — if a tag is malformed or missing, the script silently skips (no error output)
+6. **Tag hiding** — a companion Regex config hides all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display using `onlyFormatDisplay: true`. A single regex pattern `<(conq|state|secret):[^>]+>` matches all three tag types (see SKILL.md Phase 5 Infrastructure Files).
+
+### System Prompt Integration
+
+When state variables are active, the system_prompt should include a **State Reference** block (appended after the main mechanism sections) that instructs the LLM on how to read and write variables. The system tailors this block to only include the variables relevant to the current card's configuration.
+
+**Full template** (include all subsections that apply to this card's configuration):
+
+```
+[STATE TRACKING]
+Current state values (auto-resolved before you see this message):
+- Relationship stage: {{.rel_stage||1}} (1=stranger, 2=acquaintance, 3=friendly, 4=close, 5=intimate)
+- Mood: {{.mood||neutral}}
+- Event cooldown: {{.event_cooldown||0}} turns remaining (random events blocked while > 0)
+
+When your response changes any tracked state, output the appropriate tag at the END of your response:
+- State changes: <state:rel_stage=N,mood=WORD,event_cooldown=N>
+  Only include fields that actually changed. Example: <state:mood=angry> or <state:rel_stage=3,event_cooldown=2>
+
+Output tags ONLY when values have actually changed. Do not output tags that repeat the current state.
+```
+
+**Add conquest block** (Gene 7 only):
+
+```
+[CONQUEST STATE]
+Current conquest levels (auto-resolved before you see this message):
+- {{TARGET_NAME_1}}: {{.conquest_<key_1>||0}} (level 0-5: 0=undiscovered, 1=resistance, 2=tolerance, 3=acceptance, 4=cooperation, 5=integration)
+- {{TARGET_NAME_2}}: {{.conquest_<key_2>||0}}
+  ... (one entry per conquestable target)
+
+When conquest levels change, output at the END of your response:
+- <conq:target_key=new_level,...>
+  Example: <conq:head=3,waist=1>
+```
+
+**Add secret discovery block** (only if the card has discoverable secrets):
+
+```
+[SECRET DISCOVERY]
+Discovered secrets: {{.secret_1||0}} (0=undiscovered, 1=discovered)
+  ... (one entry per secret)
+
+When {{user}} discovers a secret, output at the END of your response:
+- <secret:secret_name=1>
+```
+
+This block is included in the system_prompt when either State Tracking Variables or Gene 7 was enabled.
 
 
