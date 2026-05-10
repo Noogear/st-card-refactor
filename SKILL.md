@@ -307,7 +307,7 @@ A SillyTavern Quick Reply preset that auto-triggers after every AI response. It 
 
 The system generates a complete, working STscript tailored to the specific card. All slash commands are concatenated with `\n` in a single `message` string per QR entry. The `message` field is the serialized STscript that ST executes line-by-line.
 
-> **QR format**: The preset contains **two entries**: (1) `state_sync` (`executeOnAi: true`) for Channel A tag parsing, and (2) `user_input_sync` (`executeOnUser: true`) for Channel B keyword matching. Both are hidden and auto-execute. See format-spec.md §7 "QR Script Generation Rules" for the complete JSON template and STscript command reference.
+> **QR format**: The preset must be structured as a valid SillyTavern Quick Reply JSON file. It contains a `qrList` array with **two entries**: (1) `state_sync` (`executeOnAi: true`) for Channel A tag parsing, and (2) `user_input_sync` (`executeOnUser: true`) for Channel B keyword matching. Both are hidden and auto-execute. See format-spec.md §7 "QR Script Generation Rules" for the complete format details and STscript command reference.
 
 **Script generation rules**:
 - For each conquest target: parse `<conq:...>` tag, extract `key=level` pairs, run `/setvar key=conquest_<key> <level>`
@@ -319,39 +319,8 @@ The system generates a complete, working STscript tailored to the specific card.
 
 **File 2 — Regex Extension Config** (`tag_hider_regex.json`):
 
-A SillyTavern Regex extension preset that hides ALL state-update tags from the user's view. Uses `markdownOnly: true` — the tags are hidden from display only, NOT removed from the raw data the AI sees. This is critical: the AI must still see the tags to communicate state changes.
-
-> **Field name note** (verified against ST source `char-data.js` typedef `RegexScriptData`): The UI checkbox label says "Only Format Display" but the **actual JSON property name is `markdownOnly`**, NOT `onlyFormatDisplay`. Using the wrong field name will cause the setting to be silently ignored.
-
-Template:
-
-```json
-[
-  {
-    "id": 1,
-    "scriptName": "tag_hider",
-    "findRegex": "\\n?<(conq|state|secret):[^>]+>\\n?",
-    "replaceString": "",
-    "trimStrings": [],
-    "placement": [1],
-    "disabled": false,
-    "markdownOnly": true,
-    "promptOnly": false,
-    "substituteRegex": 0,
-    "askForPlacement": false,
-    "runOnEdit": false,
-    "minPowerLevel": 0
-  }
-]
-```
-
-> Single regex pattern `\n?<(conq|state|secret):[^>]+>\n?` matches all three tag types and eats surrounding newlines to prevent ghost blank lines. If only conquest is active (no state tracking), the pattern still works — it simply won't match any `<state:...>` or `<secret:...>` tags.
-
-> **Key field rules** (verified against ST source):
-> - `markdownOnly: true` — hides tags from display only (not from AI context). This is the CORRECT field name; `onlyFormatDisplay` does NOT exist in the source code.
-> - `id` — must be a **number** (integer), NOT a string.
-> - `minPowerLevel` — NOT `minPower`.
-> - `placement: [1]` means "replace in display" (1 = display). Use `[1, 2]` for display+AI if needed, but `[1]` is the safe default for tag hiding.
+A SillyTavern Regex extension preset that hides ALL state-update tags from the user's view. It uses `markdownOnly: true` so the tags are hidden from display only, NOT removed from the raw data the AI sees. This ensures the AI can still communicate state changes.
+See format-spec.md §7 "Regex Config Generation Rules" for the complete RegexScriptData template and JSON structure.
 
 #### Output Folder Structure
 

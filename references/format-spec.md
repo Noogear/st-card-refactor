@@ -789,7 +789,7 @@ Each conquestable target defines trigger keywords (nouns) + action keywords (ver
 The QR script for Channel B uses the same command set as Channel A, but runs on `executeOnUser` and checks `{{lastUserMessage}}` instead of `{{lastMessage}}`:
 
 ```
-/let key=uinput {{lastUserMessage}}
+/let key=uinput {: {{lastUserMessage}} :}
 
 /if left={{getvar::uinput}} rule=in right="头发" {:
   /if left={{getvar::uinput}} rule=in right="摸" {:
@@ -830,13 +830,35 @@ Users can manually set any variable via:
 ### QR Script Generation Rules
 
 1. **One QR preset per card** — all three channels consolidated into a single QR preset
-2. **Two QR entries per card**:
+2. **QR Preset Structure**: The output JSON must represent a valid SillyTavern Quick Reply preset. Its root object must use the `qrList` array to store the items, rather than `entries` (which is used for Character Books).
+3. **Two entries within `qrList`**:
    - Entry 1: `state_sync` (Channel A) — `executeOnAi: true`, `executeOnUser: false`
    - Entry 2: `user_input_sync` (Channel B) — `executeOnAi: false`, `executeOnUser: true`
-   - Both hidden (`isHidden: true`)
+   - Both must run silently: `isHidden: true` AND `preventAutoExecute: false`
 3. **Channel A entry**: Parse `<conq:...>`, `<state:...>`, `<secret:...>` tags from `{{lastMessage}}` and write values to ST variables via `/setvar`.
 4. **Channel B entry**: Pattern-match user input for body-contact keywords. Increment conquest variables with a cap of 4. Uses `{{lastUserMessage}}` macro and `/if rule=in` substring checks.
-5. **Tag hiding** — a companion Regex config hides all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display using `markdownOnly: true`. Pattern: `\n?<(conq|state|secret):[^>]+>\n?`
+5. **Tag hiding**: A companion Regex config file must be generated to hide all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display.
+   - The Regex JSON must be an array containing exactly one `RegexScriptData` object (SillyTavern's expected format).
+   - Use this exact JSON template:
+```json
+[
+  {
+    "id": "generate-a-uuid-v4-here",
+    "scriptName": "CharacterName State Tag Hider",
+    "findRegex": "\\n?<(conq|state|secret):[^>]+>\\n?",
+    "replaceString": "",
+    "trimStrings": [],
+    "placement": [1, 2],
+    "disabled": false,
+    "markdownOnly": true,
+    "promptOnly": false,
+    "runOnEdit": true,
+    "substituteRegex": 0,
+    "minDepth": null,
+    "maxDepth": null
+  }
+]
+```
 
 #### STscript Command Reference
 
@@ -844,7 +866,7 @@ Users can manually set any variable via:
 
 | Command | Source | Purpose | Example |
 |---|---|---|---|
-| `/let key=N V` | `variables.js:2242` | Declare local variable | `/let key=raw {{lastMessage}}` |
+| `/let key=N V` | `variables.js:2242` | Declare local variable | `/let key=raw {: {{lastMessage}} :}` |
 | `/setvar key=N V` | `variables.js:934` | Set chat-scoped variable | `/setvar key=conquest_hair 3` |
 | `/getvar [key=N] [index=I] [name]` | `variables.js:983` | Get variable; `index` extracts JSON array element | `/getvar index=1 cm` |
 | `/var [key=N] [index=I] [V]` | `variables.js:2177` | Get/set scope variable with optional index | `/var key=x index=0` |
@@ -854,16 +876,22 @@ Users can manually set any variable via:
 | `/replace mode=regex pattern="R" replacer="R" text` | `slash-commands.js:3301` | Regex replace | `/replace mode=regex pattern="a" replacer="b" text` |
 | `/substr start=N end=N text` | `slash-commands.js:3222` | Substring extraction | `/substr start=0 end=5 hello` |
 | `/test pattern="REGEX" text` | `slash-commands.js:3361` | Regex test → `true`/`false` | `/test pattern="/<conq:/" text` |
-| `/if left=X rule=OP right=Y {:/cmd :}` | `variables.js:1298` | Conditional. Rules: `eq`, `neq`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `not` | `/if left={{getvar::raw}} rule=in right="<conq:" {:/echo hi :}` |
+| `/if left=X rule=OP right=Y {:/cmd :}` | `variables.js:1298` | Conditional. Rules: `eq`, `neq`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `not` | `/if left={: {{getvar::raw}} :} rule=in right="<conq:" {:/echo hi :}` |
 | `/echo [text]` | `slash-commands.js:2108` | Output text to chat (debugging) | `/echo hello` |
-| `{{lastMessage}}` | `macros.js:388` | Macro: last AI message content | `/let key=raw {{lastMessage}}` |
-| `{{lastUserMessage}}` | `macros.js` | Macro: last user message content | `/let key=uinput {{lastUserMessage}}` |
+| `{{lastMessage}}` | `macros.js:388` | Macro: last AI message content | `/let key=raw {: {{lastMessage}} :}` |
+| `{{lastUserMessage}}` | `macros.js` | Macro: last user message content | `/let key=uinput {: {{lastUserMessage}} :}` |
 | `{{getvar::name}}` | `variables.js:244` (old) / `variable-macros.js:98` (new) | Macro: get local variable (NO index in macro) | `{{getvar::conquest_hair}}` |
 | `{{setvar::name::value}}` | `variables.js:239` (old) / `variable-macros.js:10` (new) | Macro: set local variable (side effect, empty output) | `{{setvar::mood::happy}}` |
 | `{{decvar::name}}` | `variables.js:244` (old) / `variable-macros.js:78` (new) | Macro: decrement and return | `{{decvar::event_cooldown}}` |
 | `{{.name \|\| default}}` | `MacroLexer.js` (new engine) | Shorthand variable with fallback | `{{.conquest_hair\|\|0}}` |
 
 > **Key**: Use `/getvar index=N varname` (slash command) to access JSON array elements. NEVER use `{{var::name::index}}` — `var` is not a registered macro.
+
+
+**CRITICAL STSCRIPT RULE**: Whenever assigning or reading a macro/variable that might contain multiple lines (e.g., {{lastMessage}} or {{getvar::raw}}), you MUST wrap the macro in closure brackets {: :}. If you fail to do this, the line breaks inside the text will shatter the STScript parser, causing the script to be pasted into the user's chat box as plain text!
+Example:
+CORRECT: /let key=raw {: {{lastMessage}} :}
+WRONG: /let key=raw {{lastMessage}}
 
 ### System Prompt Blocks
 

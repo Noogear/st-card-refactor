@@ -522,25 +522,17 @@ def validate_brackets(data: dict, result: ValidationResult):
 # Main validation pipeline
 # ──────────────────────────────────────────────
 
-def validate(filepath: str) -> bool:
-    """Run the full 13-step validation pipeline."""
-    result = ValidationResult()
-
-    # Step 1: JSON parse
-    card = validate_json_parse(filepath, result)
-    if card is None:
-        result.report()
-        return False
+def validate_character_card(card: dict, result: ValidationResult) -> bool:
+    """Validate a standard character card."""
+    result.note("Detected Character Card V2 format.")
 
     # Step 2: Top-level structure
     if not validate_top_level(card, result):
-        result.report()
         return False
 
     data = card.get("data", {})
     if not isinstance(data, dict):
         result.error("'data' field is not a JSON object")
-        result.report()
         return False
 
     # Step 3: Required/recommended fields
@@ -576,114 +568,57 @@ def validate(filepath: str) -> bool:
     # Step 13: Bracket checks
     validate_brackets(data, result)
 
-    return result.report()
+    return True
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python validate_card.py <path_to_card.json>")
-        sys.exit(1)
+def validate_qr_preset(data: dict, result: ValidationResult) -> bool:
+    """Validate a Quick Reply preset."""
+    result.note("Detected QR Preset format.")
 
-    filepath = sys.argv[1]
-    success = validate(filepath)
-    sys.exit(0 if success else 1)
+    if "entries" in data:
+        result.error("QR Preset uses 'entries' instead of 'qrList'. This will cause a 'Cannot read properties of undefined (reading \\'map\\')' error on import in SillyTavern.")
+    elif "qrList" not in data:
+        result.error("QR Preset missing 'qrList' array.")
+    else:
+        qrList = data.get("qrList")
+        if not isinstance(qrList, list):
+            result.error("'qrList' is not a list")
+        else:
+            result.ok(f"Found valid 'qrList' with {len(qrList)} entries.")
 
-    total_chars = len(all_text)
-    est_tokens = total_chars // 4  # rough ~4 chars per token
-    result.note(f"Estimated token count: ~{est_tokens:,} tokens (from ~{total_chars:,} chars)")
+    if "name" not in data:
+        result.warn("QR Preset missing 'name' field.")
 
-    # Warn on high token counts
-    if est_tokens > 4000:
-        result.warn(f"Estimated tokens ({est_tokens:,}) exceeds 4,000 — may cause issues with context window")
-    elif est_tokens > 2000:
-        result.note(f"Estimated tokens ({est_tokens:,}) is moderate — ensure it fits within context budget")
-
-
-def validate_brackets(data: dict, result: ValidationResult):
-    """Step 13: Check for empty brackets/parentheses in description."""
-    desc = data.get("description", "")
-    if not isinstance(desc, str):
-        return
-    empty_patterns = [
-        (r'\(\s*""?\s*\)', 'empty parentheses with quotes'),
-        (r'\(\s*\)', 'empty parentheses'),
-        (r'\[\s*\]', 'empty square brackets'),
-        (r'\{\s*\}', 'empty curly braces'),
-    ]
-    found = False
-    for pattern, label in empty_patterns:
-        matches = re.findall(pattern, desc)
-        if matches:
-            result.warn(f"Empty brackets in description: {len(matches)} {label} found")
-            found = True
-    if not found:
-        result.ok("No empty brackets in description")
+    # JSON round-trip
+    validate_roundtrip(data, result)
+    return True
 
 
-# ──────────────────────────────────────────────
-# Main validation pipeline
-# ──────────────────────────────────────────────
-
-def validate_card(filepath: str) -> bool:
+def validate(filepath: str) -> bool:
+    """Run the appropriate validation pipeline based on the file format."""
     result = ValidationResult()
 
     # Step 1: JSON parse
     card = validate_json_parse(filepath, result)
     if card is None:
-        result.report()
-        return False
+        return result.report()
 
-    # Step 2: Top-level structure
-    if not validate_top_level(card, result):
-        result.report()
-        return False
+    # Detect format: QR Presets have 'qrList' (or mistakenly 'entries' without 'spec')
+    # Character cards have 'spec': 'chara_card_v2'
+    if "qrList" in card or ("entries" in card and "spec" not in card):
+        validate_qr_preset(card, result)
+    else:
+        validate_character_card(card, result)
 
-    data = card.get("data", {})
-
-    # Step 3: Required/recommended fields
-    if not validate_data_fields(data, result):
-        result.report()
-        return False
-
-    # Step 4: String field validation
-    validate_string_fields(data, result)
-
-    # Step 5: Alternate greetings
-    validate_alternate_greetings(data, result)
-
-    # Step 6: Extensions (depth_prompt, character_book)
-    validate_extensions(data, result)
-
-    # Step 7: Macro syntax
-    validate_macros(data, result)
-
-    # Step 8: Custom tags (conq, state, secret, etc.)
-    validate_custom_tags(data, result)
-
-    # Step 9: Conquest/state consistency
-    validate_conquest_state_consistency(data, result)
-
-    # Step 10: post_history_instructions
-    validate_post_history_instructions(data, result)
-
-    # Step 11: Round-trip
-    validate_roundtrip(card, result)
-
-    # Step 12: Token estimation
-    estimate_tokens(data, result)
-
-    # Step 13: Empty brackets check
-    validate_brackets(data, result)
-
-    # Report
     return result.report()
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python validate_card.py <path_to_card.json>")
-        print("  Validates a SillyTavern V2 character card JSON for structure,")
-        print("  macro syntax, custom tags, and consistency.")
+        print("Usage: python validate_card.py <path_to_json>")
+        print("  Validates a SillyTavern V2 character card JSON or QR Preset JSON.")
         sys.exit(1)
-    success = validate_card(sys.argv[1])
+
+    filepath = sys.argv[1]
+    success = validate(filepath)
     sys.exit(0 if success else 1)
