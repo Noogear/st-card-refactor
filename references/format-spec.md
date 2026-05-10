@@ -47,6 +47,8 @@ Convert ALL natural-language personality/setting descriptions into **high-densit
 }]
 ```
 
+> **HiddenLayers guard**: The `HiddenLayers` tag should contain only the character's **internal psychological states** — fears, suppressed desires, contradictions they feel but don't articulate. Do NOT include meta-narrative explanations, gameplay mechanics, or "why" explanations that break the in-character frame. Good: `"the never-initiate rule is partly self-preservation — initiating would force acknowledgment as desire rather than duty"`. Bad: `"her refusal to initiate creates a psychological barrier that functions as a gatekeeping mechanic"`. The former is an in-character psychological insight; the latter is a game-design commentary.
+
 ### Tag-Based Format Alternative (simpler, equally token-efficient)
 
 ```
@@ -76,6 +78,7 @@ Convert ALL natural-language personality/setting descriptions into **high-densit
   - **For Tag-Based standalone entries**: Use `[Tag: value]` consistently. Example: `[Relationship: {{user}}=son, overbearing affection ...]` — not `[Relationship({{user}}=son, ...)]` (this would break format consistency with other tags in the file).
 - **Voice & quirk descriptions**: Use behavioral verbs, not raw onomatopoeia. Write `hums while cooking`, `whimpers when upset`, `gasps mid-sentence` — not `hums "嗯……" while cooking`. The description field tells the LLM *how* a character expresses; the LLM derives appropriate vocal output from the behavioral cue. Onomatopoeia samples belong in `system_prompt` (§5E), not in `description`.
 - **Positional priority**: LLMs weight tokens near the end of a field more heavily. Place the most important or distinctive traits (core personality contradictions, key relationship dynamics, hidden layers) toward the **bottom** of the description. Routine metadata (species, age, gender) belongs at the top.
+- **Personality ↔ `personality` field redundancy guard**: When the description's `Personality(...)` tags are rewritten AND the `personality` field is also selected for rewriting, the two must complement — not duplicate — each other. Strategy: `description` → structured W++ tags with dense keywords; `personality` → short natural-language paragraph providing context/behavioral anchors that the W++ tags lack (e.g., conflict style, specific double-standards, passive-aggressive patterns). If both fields are rewritten but only `description` was selected, the `personality` field retains its original content — expected overlap is acceptable in this case. When the `personality` field is not selected for rewriting, do NOT audit the unselected field for redundancy with the rewritten `description`.
 
 ---
 
@@ -326,6 +329,12 @@ Do NOT narrate events as omniscient narrator. Have {{char}} discover or react to
 - {{char}} may be moved, convinced, or changed — but through story, not fiat.
 - This clause prevents *puppeting* (forcing {{char}} to act against their nature via narrative declaration), not *emotional evolution*. When accumulated story events, shared vulnerability, and time naturally shift {{char}}'s stance — that is character growth, not a violation of integrity. {{char}} is allowed to change their mind, develop new feelings, or soften a previously firm boundary, provided the change is narratively earned.
 ```
+
+> **§5A/§5A-erosion coexistence**: When generating the system_prompt with BOTH a slow-burn/erosion variant AND §5C-i, prepend this scope note before the `[CHARACTER INTEGRITY]` block:
+> ```
+> [§5C-i scope: This clause governs non-intimate situations. For romantic/erotic boundary progression, §5A/§5A-erosion governs. When §5C-i's "resist puppeting" conflicts with §5A's phase-based yielding, §5A wins in intimate contexts.]
+> ```
+> This prevents the LLM from applying §5C-i's resistance directive to romantic boundary situations where §5A's phase-based yielding is the intended behavior. Without this scope note, LLMs commonly mistake Phase 2 reluctant yielding for "puppeting" and refuse to comply.
 
 ### 5D — Localization Directive
 
@@ -770,6 +779,8 @@ Each conquestable target defines trigger keywords (nouns) + action keywords (ver
 | `waist` | 腰, 腰部, 小腹 | 搂, 抱, 摸, 揽, 环, 搭, 贴 | +1 per trigger (cap at level 4) |
 | `verbal` | *(relational terms)* | 叫, 称, 叫我, 叫她 | Set to current+1 (cap at level 4) |
 | `public` | *(contextual)* | 公共场合 + 亲密动作 | +1 per trigger (cap at level 4) |
+
+> **Channel B for relational/abstract targets**: For conquest targets based on **relational dynamics** (trust, emotional openness, public persona) rather than body zones, Channel B keyword matching is less effective because these targets require contextual AI judgment. For such targets, Channel B should focus on **explicit user declarations or context signals** that unambiguously push the boundary — e.g., a user saying `承认` or `说你爱我` in `verbal` targets, or performing intimate actions in clearly public scenarios for `public` targets. When the card has a mix of body-zone and relational targets, prioritize Channel B script generation for the body-zone targets (high signal reliability) and include only the most keyword-matchable relational targets (with carefully chosen trigger+action pairs). Skip Channel B generation for targets that cannot be reliably keyword-matched — these depend entirely on Channel A.
 
 > **Level 5 cap protection**: Channel B caps at level 4. Level 5 (Full Integration) requires sustained behavioral patterns that only the AI can judge — this ensures the final threshold always requires Channel A or AI narrative evaluation.
 

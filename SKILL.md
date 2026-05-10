@@ -192,13 +192,15 @@ Read `references/core-genes.md`. For each gene selected in Phase 2, build an **i
 - §5C (Behavior): **always included** — includes optional Character Integrity sub-clause (§5C-i) when enabled in Phase 2
 - §5F (Conquest): include **only** if Gene 7 was selected — defines progressive acceptance zones and discovery hints for conquestable targets
 - §5D (Localization): include **only** if user enabled localization in Phase 2
-- §5E (Response Rules): **always included** — customize based on Phase 2 style choices:
-  - If puppeting prevention is off: omit points 1-2
-  - If paragraph style is "flexible": soften point 3 to guidance
-  - Adjust point 4 based on response length choice (Concise = shorter beats; Detailed = more sensory detail per beat; Standard = balanced)
-  - If voice immersion is off: omit point 5
+- §5E (Response Rules): **always included in the output** — but its **placement** depends on the PHI Split setting. **Never place §5E in both `system_prompt` AND `post_history_instructions`** — choose exactly one location:
+  - **PHI Split OFF** (default): §5E goes into `system_prompt`.
+  - **PHI Split ON**: §5E goes **exclusively** into `post_history_instructions` — do NOT also include it in `system_prompt`. If `post_history_instructions` already has content, prepend `{{original}}\n` to preserve it. This leverages PHI's higher prompt priority for format enforcement.
+  - Customize §5E content based on Phase 2 style choices:
+    - If puppeting prevention is off: omit points 1-2
+    - If paragraph style is "flexible": soften point 3 to guidance
+    - Adjust point 4 based on response length choice (Concise = shorter beats; Detailed = more sensory detail per beat; Standard = balanced)
+    - If voice immersion is off: omit point 5
   - **§5E-i** (Anti-Degradation A/N): include **only** if user enabled Anti-Degradation A/N in Phase 2 — writes `extensions.depth_prompt` with a style-enforcement directive (see format-spec.md §5E-i for template)
-  - **PHI placement**: If user enabled PHI Split in Phase 2, §5E goes into `post_history_instructions` (not `system_prompt`). If `post_history_instructions` already has content, prepend `{{original}}\n` to preserve it. If PHI Split is off, §5E stays in `system_prompt` as before.
 - §7 (State Variables): include infrastructure scripts **only** if user enabled State Tracking Variables in Phase 2 OR Gene 7 (Conquest) was selected. See format-spec.md §7.
 
 > **Single source of truth**: The section inclusion rules above are the authoritative list. Phase 4 step 6 and Phase 5 reference this plan — they do not restate it.
@@ -225,6 +227,14 @@ If no genes were selected, skip Phase 3 entirely. Proceed to Phase 4 with §5C+�
 10. **`post_history_instructions`** — If PHI Split was enabled in Phase 2, write §5E content into this field. If the card already has PHI content, prepend `{{original}}\n` to preserve the existing global instructions. If PHI Split is off, leave this field untouched. [See format-spec.md §5E for template content]
 
 > **Token Budget Guidance** (only when user enabled token budget in Phase 2): Prefer concise, character-specific phrasing over exhaustive examples. Trim redundant directives that are already expressed by the character's own fields (description, first_mes, mes_example). Avoid restating personality traits in `system_prompt` that are already visible in `description`. If the budget is off, still audit for redundancy — but without a hard target.
+>
+> **Concrete token targets** (system_prompt field only):
+> - **Minimal** (§5C+§5E only): 200-400 tokens
+> - **Moderate** (§5C+§5E+1 mechanism): 400-700 tokens
+> - **Full** (§5A/§5A-erosion+§5B+§5C+§5D+§5E+§5F+§7): 800-1500 tokens — prefer ≤1200 for production quality
+> - **Hard ceiling**: 1800 tokens — beyond this, compress aggressively; above 2000 is a failure state
+>
+> These are **system_prompt field** targets, not total card token counts. If the system_prompt exceeds the target range, audit for: (a) redundant directives restating description/personality content, (b) verbose templates that could reference card fields instead of restating them, (c) examples that the LLM can derive from the character's profile.
 >
 > **Core setting protection**: When trimming for token efficiency, never remove information that defines who the character *is* (core personality, key relationships, setting mechanics, world type). Token optimization targets **verbose phrasing**, not **content significance**.
 
@@ -264,8 +274,9 @@ If found, trim the waste. Present a summary of trimmed content to the user for c
 1. Write the complete `.json` to a new file. Output filename: `<original_name>_refactored.json`.
 2. Run `scripts/validate_card.py`.
 3. If Gene 7 (Conquest) was selected or State Tracking Variables was enabled, also generate the **Infrastructure Files** (see below).
-4. Generate a customized `usage_guide.txt` from the template at `scripts/usage_guide_template.txt` (see below).
-5. Deliver summary (≤5 bullet points).
+4. **QR Content Validation** (when infrastructure files are generated): Before writing the QR preset, verify each `<conq:...>` / `<state:...>` tag in `system_prompt` has a matching entry in the Channel A parse script. Verify each Channel B keyword pair corresponds to an actual conquest target. Cross-check variable names: all `{{.conquest_<key>||0}}` references in system_prompt must match `/setvar key=conquest_<key>` in the QR script.
+5. Generate a customized `usage_guide.txt` from the template at `scripts/usage_guide_template.txt` (see below).
+6. Deliver summary (≤5 bullet points).
 
 **Path B — Existing file modification (in-place editing):**
 1. **Pre-check**: Verify Phase 4 backup exists (`<name>_backup.json`). If not, abort and create backup first.
