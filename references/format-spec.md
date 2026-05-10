@@ -450,7 +450,12 @@ This variant is deliberately **English** in instructional style (for LLM compreh
 
 ---
 
-## §5F — Conquest Directive
+
+  ### 5E-ii — Shared Universe / Cross-Card Lore (Optional)
+  > **Conditional**: If the user mentions that this character belongs to a family or shared universe with other characters (e.g., sisters, mothers, shared history), ALWAYS create a dedicated [Shared Universe / Family Lore] section inside the system_prompt.
+  > **Content**: Extract all shared facts (e.g., missing parents, childhood trauma, shared locations, family rifts) into concise bullet points. This ensures that if the user refactors multiple characters from the same universe, the AI will inject identical baseline memories into all of them, preventing timeline contradictions during group chats.
+
+  ## §5F — Conquest Directive
 
 > **Conditional**: Include in `system_prompt` ONLY when Gene 7 (Conquest) was selected in Phase 2. When included, this section defines how conquestable targets behave, progress, and interact.
 
