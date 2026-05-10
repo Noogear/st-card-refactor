@@ -104,7 +104,7 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 |---|---|---|---|---|---|
 | Fields | all 8 | all 8 | fix/clean¹ | all 8 | compress² |
 | Voice Immersion | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Response Length | Detailed | Standard | Standard | Standard | Standard |
+| Response Length | Standard | Standard | Standard | Standard | Standard |
 | Paragraph Style | Strict | Flexible | Flexible | Strict | Flexible |
 | Character Integrity | ✅ | ✅ | ❌ | ✅ | ❌ |
 | Token Budget | ✅ | ✅ | ❌ | ✅ | ✅ |
@@ -138,7 +138,7 @@ For **preset 6 ⚙️ 自定义** — present the full questionnaire below.
 
 **Question Group 2 — Content & style preferences** (required):
 - **Voice immersion**: On — include vocal textures in dialogue (gasps, laughs, sighs, moans, hums, huffs — derived from character personality and emotional state) / Off — plain dialogue only
-- **Response length**: Concise (terse exchanges, minimal narration) / Standard (balanced dialogue and narration, recommended) / Detailed (rich narration with sensory depth)
+- **Response length**: Concise (terse exchanges, heavily conversational) / Standard (conversational with brief actions, recommended) / Detailed (NOT RECOMMENDED: causes LLM context degradation and puppeting)
 - **Paragraph style**: Strict (dialogue, narration, and inner thought always on separate lines) / Flexible (model decides per context)
 - **Puppeting prevention**: On (recommended — {{char}} never writes for {{user}}) / Off (allow AI to continue {{user}}'s actions when input is incomplete)
 - **Character integrity**: On ({{char}} resists when narrative pressure contradicts their personality, mood, or physical state — persuasion requires in-narrative effort) / Off ({{char}} follows the narrative flow without resistance)
