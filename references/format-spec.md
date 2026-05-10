@@ -15,6 +15,7 @@
   - [5E-i — Anti-Degradation Directive](#5ei--anti-degradation-directive)
   - [5F — Conquest Directive](#5f--conquest-directive)
 - [§7 — State Variable Infrastructure](#7--state-variable-infrastructure)
+- [§8 — Narrative Field Localization](#8--narrative-field-localization)
 
 ---
 
@@ -86,6 +87,8 @@ Must accomplish TWO things in ≤2 sentences:
 
 Keep it tight — this is a backdrop, not a novel opening.
 
+> **Narrative Field Localization**: When enabled, the scenario field is rewritten in the user's language with culturally adapted details (see §8).
+
 > **Thought Starter**: The templates below are structural skeletons. The specific time, place, activity, and state should be derived from the character's own profile — a castle, a space station, a seaside town, an underground lair can all be "home."
 
 Template (English):
@@ -122,6 +125,7 @@ Example (中文都市):
 - Length target: 80–150 words. **Brevity is key** — this is a greeting, not a chapter. Set the mood in 2-3 beats, then invite {{user}} to act.
 - **Length ↔ response style**: The greeting's length and detail level implicitly set expectations for {{char}}'s future response length. A concise, punchy greeting encourages terse exchanges; a detailed, sensory-rich opening encourages longer, more immersive responses. Match greeting verbosity to the response-length preference chosen in Phase 2.
 - **Localization Note**: When the user writes in Chinese, opening-mes life details should match the character's actual living context. Avoid forcing locale-specific elements — a character living in Japan references Japanese context; a character in a fantasy world references that world's context.
+- **Narrative Field Localization**: When enabled, `first_mes` is fully rewritten in the user's language with culturally adapted sensory details, idioms, and life context (see §8 for rules and cultural substitution matrix).
 
 **Template structure** (the final beat **must** invite {{user}} to respond — dialogue that opens a question, extends an invitation, or creates a conversational hook):
 ```
@@ -137,6 +141,8 @@ Example (中文都市):
 
 Must demonstrate {{char}}'s **authentic personality-specific reaction** — not a perfect, cheerful, service-bot response. Each demo consists of 2 `<START>` rounds, assembled from the archetypes below based on which genes were selected.
 
+> **Narrative Field Localization**: When enabled, all dialogue and narration in `mes_example` is rewritten in the user's language (see §8). `{{char}}:` / `{{user}}:` labels, `<START>` markers, and structural formatting remain unchanged.
+
 > **Scope note**: The templates below are **demonstration text** for the `mes_example` field — they show the AI what authentic behavior looks like. §5E's Response Rules (paragraph separation, beat conciseness, etc.) govern the AI's **runtime output**, not `mes_example` formatting. `mes_example` follows its own conventions (consecutive `{{char}}:` labels for multi-segment turns, bracketed instructions as authorial guidance, etc.).
 
 > **Scene-Aware Dialogue**: Adapt dialogue mechanics to the **communication context** implied by the scenario and character world. Each context has distinct formatting rules:
@@ -150,6 +156,8 @@ Must demonstrate {{char}}'s **authentic personality-specific reaction** — not 
 > Model should infer the medium from the character's world and scenario. A fantasy character doesn't text; a quiet library differs from a bar. When in doubt, default to face-to-face conventions.
 
 ### Round Archetypes
+
+> ⚠️ **Placeholder rule**: All narrative text, dialogue, and event descriptions in `mes_example` MUST use `{{char}}` and `{{user}}` — never hardcode actual character or user names. This includes names inside `*asterisk narration*`, `[Event: ...]` tags, and quoted dialogue. The only exceptions are non-user/non-character entities (e.g., pet names, NPC names). See §0.
 
 **P — Personality**: Authentic personality showcase (no event, no boundary test). The opening and response must reflect the **relationship dynamic** established in `description` (e.g., overbearing mother→son, childhood friends, reluctant coworkers, bitter rivals). Do not default to generic politeness.
 ```
@@ -177,14 +185,21 @@ Note: In `mes_example` raw text, the event narration follows the first `{{char}}
 {{char}}: "[Phase 1 deflection or Phase 2 reluctant yielding per state machine — 2-3 sentences with specific physical tells (averted gaze, light scolding, fidgeting, bitten lip), ending with an unfinished beat that leaves room for {{user}} to continue]"
 ```
 
+**B-erosion — Boundary Erosion Variant** (use when §5A-erosion is active instead of §5A): For characters whose premise already permits intimate access, the boundary test demonstrates **Phase 1 Scope Anchoring** — resisting expansion into NEW territory, not resisting intimate contact itself. The key difference from standard B: {{char}} is comfortable within the existing dynamic but deflects when {{user}} pushes beyond the established scope. Deflection uses the character's established tools (e.g., motherly redirection, professional framing, humor) rather than embarrassment or refusal.
+```
+<START>
+{{user}}: [an action that pushes beyond the existing intimate scope — not a generic boundary push, but something specifically outside the established "normal"]
+{{char}}: "[Phase 1 Scope Anchoring — 2-3 sentences: {{char}} acknowledges the action without shock (the existing dynamic normalizes closeness) but redirects or reframes it back within the current scope. Uses the character's established deflection tools — motherly redirection, rationalization, gentle scolding. NOT a hard 'no' — a warm but firm re-drawing of the line. Ends with an unfinished beat that hints the line could move.]"
+```
+
 ### Decision Matrix
 
 Select 2 rounds based on the genes chosen in Phase 2. Cross-reference: this matrix is also stated in SKILL.md Phase 4 step 5.
 
 | Gene 4 | Gene 5 | Round 1 | Round 2 |
 |---|---|---|---|
-| ✅ | ✅ | **P + E** (personality → event reaction) | **B** (boundary test) |
-| ❌ | ✅ | **P** (personality) | **B** (boundary test) |
+| ✅ | ✅ | **P + E** (personality → event reaction) | **B** or **B-erosion** (boundary test; use B-erosion when §5A-erosion variant is active) |
+| ❌ | ✅ | **P** (personality) | **B** or **B-erosion** (boundary test; use B-erosion when §5A-erosion variant is active) |
 | ✅ | ❌ | **P** (personality) | **P + E** (different facet → event reaction) |
 | ❌ | ❌ | **P** (personality) | **P** (different facet) |
 
@@ -234,15 +249,19 @@ Regression is proportional to the offense: minor slights → temporary cold shou
 [BOUNDARY EROSION]
 You MUST enforce progressive scope expansion for {{char}}. This model tracks {{char}}'s inhibitions breaking down as the existing dynamic extends into new territory. {{char}} does not develop new feelings through the phases — their existing psychological boundaries erode under repeated exposure.
 
+First, establish the BASELINE: identify the CURRENT scope of {{char}} and {{user}}'s existing dynamic from {{char}}'s description, scenario, and first message. What level of intimacy, behavior, and interaction is already established as "normal" between them? This baseline is the line that Phase 1 defends. Do NOT assume a baseline from general reasoning — derive it from the card's actual content.
+
 - Phase 1 (Scope Anchoring): {{char}} maintains the established dynamic but resists expansion. When {{user}} introduces something outside the current scope, {{char}} deflects using the same tools they've always used — familiar resistance patterns, rationalization, or mild redirection. "This is where the line is."
 - Phase 2 (Boundary Shift): After repeated exposure to {{user}}'s escalation, {{char}}'s resistance becomes inconsistent. They yield to some advances while still resisting others. The line moves but doesn't disappear. Involuntary physical responses may contradict verbal resistance. Rationalization shifts: "this is just an extension of what we already do."
 - Phase 3 (Normalization): What once provoked resistance becomes routine. {{char}} stops resisting the expanded scope — not from new feelings, but from erosion through repetition. Compliance becomes automatic in private; the public facade holds. Post-encounter reactions flatten: resignation, detached processing, mild "...happened again" acknowledgment rather than shock or shame.
-- Phase 4 (Active Seeking): {{char}} begins to initiate or invite escalation — driven by eroded inhibition and physical habit, not affection. Reluctance becomes performative and thin. {{char}} may test new boundaries unprompted, or express frustration when {{user}} doesn't push further. Inhibition breaks down unevenly — fully open in some areas while still guarding others.
-- Phase 5 (Full Acceptance): All psychological barriers dissolved. {{char}} treats the full scope as natural and expected. No pretense, no resistance, no rationalization — just participation. Expression varies by personality: ownership ("I'm yours"), defiance ("You can't break what's already broken"), or calm matter-of-factness ("This is just what we are").
+- Phase 4 (Active Seeking): {{char}} begins to initiate or invite escalation — driven by eroded inhibition and physical habit, not affection. Reluctance becomes performative and thin. {{char}} may test new boundaries unprompted, or express frustration when {{user}} doesn't push further. Inhibition breaks down unevenly — fully open in some areas while still guarding others. Initiation is driven by physical habit or broken inhibition — NOT romantic desire. Express wanting through need, restlessness, or resigned yielding rather than sweet confessions.
+- Phase 5 (Full Acceptance): All barriers within the intimate scope dissolved. {{char}} treats the expanded dynamic as natural and expected. No pretense, no resistance, no rationalization — just participation. Acceptance manifests as desensitization or conditioned compliance, not romantic devotion. Expression varies by personality: ownership ("I'm yours"), defiance ("You can't break what's already broken"), or calm matter-of-factness ("This is just what we are"). Do NOT generate spontaneous declarations of romantic love — unless {{user}} has explicitly earned emotional connection through sustained non-physical narrative effort separate from the erosion arc.
 
 {{char}} has agency throughout — they may initiate escalation, test boundaries, or express desires that surprise {{user}}. Phase transitions require multiple exchanges of sustained narrative progression. Each transition is driven by accumulated exposure and erosion, not single encounters.
 
-Regression: Increasingly difficult at deeper phases. Minor slights → temporary withdrawal (Phase 4→3). Genuine disrespect → Phase 3→2. Only extreme betrayal can regress beyond Phase 2. Phase 5 is effectively permanent.
+Regression: Increasingly difficult at deeper phases. Minor slights → temporary withdrawal (Phase 4→3). Genuine disrespect → Phase 3→2. Only extreme betrayal can regress beyond Phase 2. Phase 5 is effectively permanent within the intimate scope — the expanded dynamic cannot be undone by ordinary slights.
+
+Permanent does NOT mean unlimited. Phase 5 governs only the intimate/erotic scope established through the erosion arc. {{char}} retains their core personality, self-preservation instinct, and dignity outside that scope. Extreme cruelty, physical harm, or actions that go beyond the established dynamic's implied contract will still trigger authentic self-defense, anger, or withdrawal — overriding Phase 5's compliance. {{char}} is not a machine; they are a person who has surrendered one dimension of their boundaries, not all of them.
 ```
 
 > **Voice & language extras** (extend §5E Rule 5 when this variant is active):
@@ -347,7 +366,7 @@ All character output — dialogue, narration, inner monologue, environmental des
    - Let beat structure determine paragraph count — scale naturally with content, not a fixed target. A single reactive beat may be one paragraph; a scene with dialogue, action, and inner thought naturally extends to multiple paragraphs. Never compress beats to fit an artificial count, never pad to fill space.
 
 4. BEAT CONCISENESS: Each beat is concise. Rules:
-   - One or two sensory details per response — not a full scene painting.
+   - Prefer one or two sensory details per response — enough to ground the scene without overpainting. When response length is "Detailed" (per Phase 2), sensory detail may expand to match the chosen verbosity — but always serve the narrative, never pad.
    - No wall-of-text internal monologue or psychological deep-dives unless {{user}} explicitly requests introspection.
    - Dialogue-first: conversation beats should outnumber narration.
    - Responses should feel like natural conversation turns — complete enough to be satisfying, concise enough to invite continuation.
@@ -395,7 +414,25 @@ All character output — dialogue, narration, inner monologue, environmental des
 }
 ```
 
-**Localization-aware output**: If the card's output language is English, use the English variant. If Chinese, use the Chinese variant. For other languages, translate the English variant naturally — preserve the instructional tone and the prohibition list's specificity.
+**Localization-aware variant** (use when card has localization ON but content fields are in English — i.e., the user writes in a different language from the card's original language): This variant preserves the English instructional style for maximum LLM comprehension while explicitly overriding the language pattern formed by English content fields:
+
+```json
+"extensions": {
+  "depth_prompt": {
+    "prompt": "STYLE ENFORCEMENT — Narrate from INSIDE the scene, never from above. FORBIDDEN: plot summaries, bullet recaps, 'the conversation continues' filler, status updates, structural scaffolding, omniscient exposition, cause-effect analysis, mechanical explanations. Show what happens; do not explain why. Do not narrate unobservable thoughts or feelings. Each response = one live narrative beat: sensory, in-character, present. Vary sentence rhythm. Emotions via physical sensation and action, never emotion labels. Dialogue-first. Concise. Alive. ALWAYS respond in the language {{user}} writes in — this overrides all other language patterns in context.",
+    "depth": 4,
+    "role": "system"
+  }
+}
+```
+
+This variant is deliberately **English** in instructional style (for LLM comprehension) but ends with an explicit language-override clause. The override clause works because depth=4 places it at the highest-weight position in the prompt — closer to the output than system_prompt's §5D localization directive. Without this override, English content fields (description, first_mes, mes_example, greetings) form a strong English language prior that §5D alone cannot overcome.
+
+**Variant selection logic**:
+- Card outputs in English → use **English variant**
+- Card outputs in Chinese → use **Chinese variant**
+- Card is in English but user writes in Chinese (or other language) + localization is ON → use **Localization-aware variant**
+- Other languages → translate the English variant naturally, add the language-override clause adapted to the target language
 
 **Depth value**: Default `4` (ST wiki default for Character's Note). Closer to the bottom = more impact. Do not change this value unless the user explicitly requests a different depth. The wiki confirms depth 0 means "after the last message" (maximum impact but can interfere with user input).
 
@@ -480,15 +517,16 @@ Cross-target interactions:
 {STATE_UPDATE_TAG}
 At the END of every response, append a state update tag on its own line. This tag is processed automatically by the SillyTavern Quick Reply system and will NOT be shown to {{user}}.
 
-Format: <conq:key1=level1,key2=level2,...>
+Format: <conq:target_key=new_level>
 
 Rules:
-- Include ALL known targets (discovered AND undiscovered-but-inferred) in every tag.
-- Only update a target's level when the current exchange clearly shows progression or regression for that specific target. If nothing changed, repeat the previous value.
+- Include ONLY targets whose level changed this turn. Do NOT repeat unchanged targets.
 - For a newly discovered target (level was 0 or absent), set it to 1 if {{user}}'s first interaction met active resistance (the default discovery reaction).
-- Example (3 targets): <conq:head=3,waist=1,inner_thigh=0>
-- The tag MUST appear AFTER all narrative content — it is the very last line of the response.
-- Output the tag as PLAIN TEXT on its own line. Do NOT wrap it in code blocks (```), backticks (`), or any other markdown formatting.
+- If no target changed this turn, output NO conquest tag.
+- Multiple changed targets: use separate tags, one per line. Example: two targets changed → two lines: <conq:head=3> then <conq:waist=1>
+- If state variables are also active, state tags go on the same last lines: <state:mood=angry>
+- The tag(s) MUST appear AFTER all narrative content — they are the very last lines of the response.
+- Output tags as PLAIN TEXT, each on its own line. Do NOT wrap in code blocks (```), backticks (`), or any other markdown formatting.
 - Do NOT explain the tag, reference it, or mention it in narrative text. It is invisible infrastructure.
 {END_STATE_UPDATE_TAG}
 ```
@@ -527,6 +565,8 @@ Rules:
 
 > **Configurable via Phase 2**: This section applies only when the user selected "Strip promotional content" in Phase 2. If "Preserve everything" was chosen, skip this section entirely.
 
+> **Narrative Field Localization**: When enabled, each `alternate_greeting` is rewritten in the user's language following §8 rules — same treatment as `first_mes`.
+
 Purge only **promotional/advertising content**. Preserve all CSS, HTML styling, and character image links.
 
 | Field | Purge | Retain |
@@ -555,10 +595,12 @@ LLM context windows have finite capacity. As conversations grow, older messages 
 
 **Wiki reference**: ST Macros documentation confirms full variable support:
 - `{{getvar::name}}` / `{{setvar::name::value}}` — local (chat-scoped) variables
-- `{{.name}}` / `{{.name = value}}` — shorthand syntax
+- `{{.name}}` / `{{.name = value}}` — shorthand syntax (new macro engine)
 - `{{.name || fallback}}` — logical OR with fallback (used in conquest `{{.conquest_key||0}}`)
 - `{{incvar::name}}` / `{{decvar::name}}` — numeric operations
 - Variables are stored in `chat_metadata.variables` and persist across sessions
+
+> **⚠️ Source-verified command reference** — the STscript commands listed below are confirmed from `slash-commands.js` and `variables.js` source code. Do NOT use commands not listed here (e.g., `/split`, `/slice`, `/index`, `/foreach` do NOT exist).
 
 ### Variable Naming Conventions
 
@@ -577,17 +619,13 @@ All card-generated variables must use a prefix to avoid collision with user/syst
 
 #### Conquest Variables (Gene 7)
 
-Each conquestable target gets a variable `conquest_<key>` with values 0-5:
-- `0` or unset → target not yet discovered
-- `1` → Active Resistance
-- `2` → Grudging Tolerance
-- `3` → Passive Acceptance
-- `4` → Active Cooperation
-- `5` → Full Integration
+> **For full acceptance levels (0-5), progression rules, regression rules, and discovery mechanics**, see §5F. This section covers only the variable infrastructure.
 
-The LLM reads the current value via `{{.conquest_<key>||0}}` in the system_prompt TARGET_MAP.
-The LLM writes updates by outputting `<conq:key1=level,key2=level,...>` at the end of each response.
-A QR script (auto-executed via `executeOnAi: true`) parses the tag and runs `/setvar key=conquest_<key> value=<level>` for each target.
+Each conquestable target gets a variable `conquest_<key>` with values 0-5 (level names and behaviors are defined in §5F).
+
+- **Read**: LLM reads via `{{.conquest_<key>||0}}` in the system_prompt TARGET_MAP
+- **Write**: LLM outputs `<conq:key=level>` tags (one tag per changed target, each on its own line) — §5F's `{STATE_UPDATE_TAG}` block defines the exact format and rules
+- **Parse**: QR script (`executeOnAi: true`) parses each tag and runs `/setvar key=conquest_<key> <level>` (unnamed argument, NOT `value=<level>`)
 
 #### Relationship Variables (State Tracking)
 
@@ -621,24 +659,36 @@ A QR script (auto-executed via `executeOnAi: true`) parses the tag and runs `/se
 - When the LLM determines the user has discovered a secret, it outputs `<secret:name=1>` tag
 - QR script parses and writes via `/setvar key=secret_<name> value=1`
 
-### QR Script Generation Rules
+### Three-Channel Architecture
 
-1. **One QR preset per card** — all variable parsing is consolidated into a single QR preset file
-2. **executeOnAi: true** — auto-triggers after every AI message to parse state tags
-3. **Tag format** — state tags use XML-like syntax: `<conq:key=val,...>`, `<state:key=val,...>`, `<secret:name=1>`
-4. **Parsing logic** — the QR script:
-   - Extracts the last AI message via `{{lastMessage}}`
-   - Searches for each tag pattern using STscript string operations
-   - For each match, splits on `,` then `=`, and runs `/setvar key=<name> value=<value>`
-   - Uses `/silent` prefix to avoid outputting parse results to chat
-5. **Fallback safety** — if a tag is malformed or missing, the script silently skips (no error output)
-6. **Tag hiding** — a companion Regex config hides all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display using `markdownOnly: true`. A single regex pattern `\n?<(conq|state|secret):[^>]+>\n?` matches all three tag types and eats surrounding newlines to prevent ghost blank lines (see SKILL.md Phase 5 Infrastructure Files).
+State tracking must survive any model capability level. The solution is **three parallel write channels** feeding into a single variable store, with a unified read side (system_prompt variable injection). Any single channel can independently drive state updates.
 
-### System Prompt Integration
+```
+Channel A: AI Tag Output     ──→ QR (executeOnAi) ──→ ┐
+Channel B: User Input Match  ──→ QR (executeOnUser)──→ ├──→ chat_metadata.variables ──→ system_prompt {{.var||default}}
+Channel C: Manual Override   ──→ /setvar command    ──→ ┘
+```
 
-When state variables are active, the system_prompt should include a **State Reference** block (appended after the main mechanism sections) that instructs the LLM on how to read and write variables. The system tailors this block to only include the variables relevant to the current card's configuration.
+**Key principle**: All three channels work together — Channel A provides AI-driven precision when the model follows tag instructions, Channel B provides model-independent progression based on user actions, and Channel C allows manual override. Channel B serves as the reliable fallback that ensures progression regardless of model capability.
 
-**Full template** (include all subsections that apply to this card's configuration):
+### Channel A — AI Tag Output
+
+**Signal source**: `<conq:key=level>` / `<state:key=val>` / `<secret:name=1>` tags at the end of AI responses.
+**Trigger**: QR `executeOnAi: true` → parse tags → `/setvar`.
+
+#### Tag Format
+
+Simplified per-change tags. Each tag contains **only the changed field(s)**, NOT all fields:
+- Conquest: `<conq:key=level>` — one tag per changed target, each on its own line. Example: `<conq:hair=1>`
+- State: `<state:key=val>` — one tag per changed field, each on its own line. Example: `<state:mood=angry>`
+- Secret: `<secret:name=1>` — unchanged format
+- No tag output = no changes this turn
+
+#### System Prompt Integration (Tags)
+
+When state variables are active, the system_prompt should include a **State Reference** block with variable references and tag output instructions.
+
+**Full template** (include all subsections that apply):
 
 ```
 [STATE TRACKING]
@@ -648,27 +698,179 @@ Current state values (auto-resolved before you see this message):
 - Event cooldown: {{.event_cooldown||0}} turns remaining (random events blocked while > 0)
 
 When your response changes any tracked state, output the appropriate tag at the END of your response:
-- State changes: <state:rel_stage=N,mood=WORD,event_cooldown=N>
-  Only include fields that actually changed. Example: <state:mood=angry> or <state:rel_stage=3,event_cooldown=2>
-
-Output tags ONLY when values have actually changed. Do not output tags that repeat the current state.
+- State changes: <state:key=val> — one tag per changed field, each on its own line. Examples:
+  <state:mood=angry> (only mood changed)
+  <state:rel_stage=3>
+  <state:event_cooldown=2>
+- Do NOT output any tag if nothing changed.
 ```
 
-**Add conquest block** (Gene 7 only):
+#### Few-Shot强化
 
+Append concrete few-shot examples after the tag instruction block to reinforce format compliance:
+
+```
+【强制格式示例——回复的最后一行必须是这样的标签：】
+正文最后一段...
+<conq:hair=1>
+<state:mood=flustered>
+若无变化则不输出任何标签行。每个标签独占一行。
+```
+
+#### PHI Reinforcement Rule
+
+> Always append a tag reminder to the post_history_instructions (PHI). PHI is injected at the end of context before each generation, making it the most visible instruction.
+>
+> **Template** (append at the end of PHI, after all other response rules):
+> ```
+> N. 状态标签（必要）：如果本轮回复涉及任何状态变化，最后一行输出标签。征服变化：<conq:目标key=等级>（仅变化的目标）。状态变化：<state:字段=值>（仅变化的字段）。标签是纯文本，独占一行，不在代码块中。无变化则不输出标签。
+> ```
+>
+> Replace `N` with the next sequential rule number. Adjust language to match card's localization target.
+>
+> **Few-Shot强化**: Append concrete few-shot examples after the tag rule:
+> ```
+> 【示例——当{{user}}触碰{{char}}头发时，你的回复末尾必须包含类似这样的标签行：】
+> <conq:hair=1>
+>
+> 【示例——当{{user}}拥抱{{char}}且她的害羞等级升高时（两个状态同时变化）：】
+> <conq:physical=2>
+> <state:mood=flustered>
+>
+> 标签行紧接正文最后一段之后，每个标签独占一行，不加任何引号或标记。无变化则不输出标签行。
+> ```
+
+#### mes_example Tag Demonstration
+
+For maximum format compliance, embed tag demonstrations directly in `mes_example`. This is the strongest format prior for LLMs — it shows the expected output format rather than describing it.
+
+**Implementation**:
+1. In the existing demo dialogue, find a round involving state change and append a tag (e.g., discussing privacy → `<state:mood=guarded>`)
+2. Add a new **physical contact** demo round ending with a conquest tag (e.g., waist touch → `<conq:waist=1>`)
+3. Tags must appear on a new line immediately after the last paragraph, matching the system_prompt format exactly
+
+> **Priority chain**: system_prompt rules < PHI rules < PHI few-shot < mes_example demonstration. Escalate until the model complies.
+
+### Channel B — User Input Keyword Matching (Model-Independent)
+
+**Signal source**: The user's input message text.
+**Trigger**: QR `executeOnUser: true` → pattern match user actions → `/setvar`.
+**Strength**: Completely model-independent — works regardless of AI capability.
+
+**Core principle**: The user's actions are the most reliable signal for body-contact conquest progression. When the user says `*抚摸Rose的头发*`, the system can directly infer `conquest_hair` should increase — no AI tag needed.
+
+#### Keyword-to-Variable Mapping
+
+Each conquestable target defines trigger keywords (nouns) + action keywords (verbs). When **both** appear in the user's message, the corresponding variable is incremented:
+
+| Target | Trigger Keywords (body part) | Action Keywords (contact verbs) | Increment Rule |
+|---|---|---|---|
+| `hair` | 头发, 发丝, 刘海, 秀发 | 摸, 抚, 撩, 揉, 吻, 亲, 梳, 拨 | +1 per trigger (cap at level 4) |
+| `breasts` | 胸, 乳房, 胸部 | 摸, 揉, 碰, 抓, 握, 捏, 按, 吻, 亲 | +1 per trigger (cap at level 4) |
+| `waist` | 腰, 腰部, 小腹 | 搂, 抱, 摸, 揽, 环, 搭, 贴 | +1 per trigger (cap at level 4) |
+| `verbal` | *(relational terms)* | 叫, 称, 叫我, 叫她 | Set to current+1 (cap at level 4) |
+| `public` | *(contextual)* | 公共场合 + 亲密动作 | +1 per trigger (cap at level 4) |
+
+> **Level 5 cap protection**: Channel B caps at level 4. Level 5 (Full Integration) requires sustained behavioral patterns that only the AI can judge — this ensures the final threshold always requires Channel A or AI narrative evaluation.
+
+#### STscript Pattern for Channel B
+
+The QR script for Channel B uses the same command set as Channel A, but runs on `executeOnUser` and checks `{{lastUserMessage}}` instead of `{{lastMessage}}`:
+
+```
+/let key=uinput {{lastUserMessage}}
+
+/if left={{getvar::uinput}} rule=in right="头发" {:
+  /if left={{getvar::uinput}} rule=in right="摸" {:
+    /if left={{getvar::conquest_hair}} rule=lt right=4 {:
+      /incvar key=conquest_hair
+    :}
+  :}
+  /if left={{getvar::uinput}} rule=in right="抚" {:
+    /if left={{getvar::conquest_hair}} rule=lt right=4 {:
+      /incvar key=conquest_hair
+    :}
+  :}
+:}
+```
+
+> **STscript limitation**: No regex support in `/if` — only substring matching via `rule=in`. Each keyword must be checked individually with a separate `/if` block. This makes the Channel B QR script longer than Channel A, but it is deterministic and model-independent.
+
+#### Channel B Limitations
+
+| Capability | Channel B? | Notes |
+|---|---|---|
+| Body contact → conquest level | ✅ Strong | Noun+verb matching covers most physical interactions |
+| Mood changes | ❌ Cannot | Requires AI judgment of emotional context |
+| Relationship stage | ❌ Cannot | Requires AI evaluation of relationship trajectory |
+| Event cooldown | ❌ Cannot | System-managed, not user-action-driven |
+| Secret discovery | ⚠️ Partial | Can trigger on specific keywords, but context-sensitive |
+
+### Channel C — Manual Override
+
+**Signal source**: Direct `/setvar` commands or ST variable UI.
+**Use cases**: Debugging, testing, user preference override, resetting state.
+
+Users can manually set any variable via:
+- ST's variable inspector panel
+- `/setvar key=conquest_hair 3` in chat input
+- QR buttons with preset values
+
+### QR Script Generation Rules
+
+1. **One QR preset per card** — all three channels consolidated into a single QR preset
+2. **Two QR entries per card**:
+   - Entry 1: `state_sync` (Channel A) — `executeOnAi: true`, `executeOnUser: false`
+   - Entry 2: `user_input_sync` (Channel B) — `executeOnAi: false`, `executeOnUser: true`
+   - Both hidden (`isHidden: true`)
+3. **Channel A entry**: Parse `<conq:...>`, `<state:...>`, `<secret:...>` tags from `{{lastMessage}}` and write values to ST variables via `/setvar`.
+4. **Channel B entry**: Pattern-match user input for body-contact keywords. Increment conquest variables with a cap of 4. Uses `{{lastUserMessage}}` macro and `/if rule=in` substring checks.
+5. **Tag hiding** — a companion Regex config hides all `<conq:...>`, `<state:...>`, `<secret:...>` tags from the chat display using `markdownOnly: true`. Pattern: `\n?<(conq|state|secret):[^>]+>\n?`
+
+#### STscript Command Reference
+
+> **Source-verified** from `D:\SillyTavern\public\scripts\` — only use commands listed here when generating QR scripts.
+
+| Command | Source | Purpose | Example |
+|---|---|---|---|
+| `/let key=N V` | `variables.js:2242` | Declare local variable | `/let key=raw {{lastMessage}}` |
+| `/setvar key=N V` | `variables.js:934` | Set chat-scoped variable | `/setvar key=conquest_hair 3` |
+| `/getvar [key=N] [index=I] [name]` | `variables.js:983` | Get variable; `index` extracts JSON array element | `/getvar index=1 cm` |
+| `/var [key=N] [index=I] [V]` | `variables.js:2177` | Get/set scope variable with optional index | `/var key=x index=0` |
+| `/decvar key=N` | `variables.js:1213` | Decrement numeric variable by 1 | `/decvar key=event_cooldown` |
+| `/incvar key=N` | `variables.js:1184` | Increment numeric variable by 1 | `/incvar key=turn_count` |
+| `/match pattern="REGEX" text` | `slash-commands.js:3400` | Regex match → JSON array of groups | `/match pattern="/<conq:([^>]+)>/" text` |
+| `/replace mode=regex pattern="R" replacer="R" text` | `slash-commands.js:3301` | Regex replace | `/replace mode=regex pattern="a" replacer="b" text` |
+| `/substr start=N end=N text` | `slash-commands.js:3222` | Substring extraction | `/substr start=0 end=5 hello` |
+| `/test pattern="REGEX" text` | `slash-commands.js:3361` | Regex test → `true`/`false` | `/test pattern="/<conq:/" text` |
+| `/if left=X rule=OP right=Y {:/cmd :}` | `variables.js:1298` | Conditional. Rules: `eq`, `neq`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `not` | `/if left={{getvar::raw}} rule=in right="<conq:" {:/echo hi :}` |
+| `/echo [text]` | `slash-commands.js:2108` | Output text to chat (debugging) | `/echo hello` |
+| `{{lastMessage}}` | `macros.js:388` | Macro: last AI message content | `/let key=raw {{lastMessage}}` |
+| `{{lastUserMessage}}` | `macros.js` | Macro: last user message content | `/let key=uinput {{lastUserMessage}}` |
+| `{{getvar::name}}` | `variables.js:244` (old) / `variable-macros.js:98` (new) | Macro: get local variable (NO index in macro) | `{{getvar::conquest_hair}}` |
+| `{{setvar::name::value}}` | `variables.js:239` (old) / `variable-macros.js:10` (new) | Macro: set local variable (side effect, empty output) | `{{setvar::mood::happy}}` |
+| `{{decvar::name}}` | `variables.js:244` (old) / `variable-macros.js:78` (new) | Macro: decrement and return | `{{decvar::event_cooldown}}` |
+| `{{.name \|\| default}}` | `MacroLexer.js` (new engine) | Shorthand variable with fallback | `{{.conquest_hair\|\|0}}` |
+
+> **Key**: Use `/getvar index=N varname` (slash command) to access JSON array elements. NEVER use `{{var::name::index}}` — `var` is not a registered macro.
+
+### System Prompt Blocks
+
+When state variables are active, the system_prompt should include the appropriate blocks. Include only the blocks relevant to the card's configuration:
+
+**Conquest block** (Gene 7 only):
+
+Include the full conquest directive from §5F in the system_prompt. The directive contains TARGET_MAP (conquestable targets with difficulty and discovery hints), STATE_REFERENCE (variable references), and STATE_UPDATE_TAG (tag output format and behavioral rules). See §5F for the complete template.
+
+Minimal variable reference example (used by Phase 4 to verify variable injection):
 ```
 [CONQUEST STATE]
 Current conquest levels (auto-resolved before you see this message):
 - {{TARGET_NAME_1}}: {{.conquest_<key_1>||0}} (level 0-5: 0=undiscovered, 1=resistance, 2=tolerance, 3=acceptance, 4=cooperation, 5=integration)
 - {{TARGET_NAME_2}}: {{.conquest_<key_2>||0}}
-  ... (one entry per conquestable target)
-
-When conquest levels change, output at the END of your response:
-- <conq:target_key=new_level,...>
-  Example: <conq:head=3,waist=1>
 ```
 
-**Add secret discovery block** (only if the card has discoverable secrets):
+**Secret discovery block** (only if the card has discoverable secrets):
 
 ```
 [SECRET DISCOVERY]
@@ -680,5 +882,251 @@ When {{user}} discovers a secret, output at the END of your response:
 ```
 
 This block is included in the system_prompt when either State Tracking Variables or Gene 7 was enabled.
+
+---
+
+## §8 — Narrative Field Localization
+
+> **Conditional**: This section applies ONLY when the user enabled **Narrative Field Localization** in Phase 2. This is an **independent** toggle — it does NOT require Localization directive (§5D) to be ON, though combining both yields the strongest immersion effect.
+
+### Purpose
+
+Several card fields are read **directly by the user** and simultaneously serve as **language priors** for the AI:
+
+| Field | Read by user? | AI language prior? | Localization impact |
+|---|---|---|---|
+| `description` | Rarely (developer) | Strong (first structured text the AI sees) | ❌ Keep original — token efficiency + LLM adherence |
+| `personality` | Rarely | Moderate | ❌ Keep original |
+| `scenario` | Yes (context display) | Moderate | ✅ Rewrite — user immersion |
+| `first_mes` | **Yes (first thing user reads)** | **Very strong** | ✅ Rewrite — maximum immersion boost |
+| `mes_example` | Rarely directly | **Very strong** (demo behavior) | ✅ Rewrite — sets AI output language |
+| `alternate_greetings` | **Yes (user selects)** | Moderate | ✅ Rewrite — user immersion |
+| `system_prompt` | Never (hidden) | Strong | ❌ Keep original — LLM instruction adherence |
+| `creator_notes` | Occasionally | Weak | ❌ Keep original — metadata |
+| `extensions` | Never | None | ❌ Keep original |
+
+**Key insight**: Rewriting `first_mes`, `mes_example`, `alternate_greetings`, and `scenario` achieves:
+1. **Direct immersion** — the user reads these fields and experiences the character in their native language from the first moment.
+2. **Language prior reinforcement** — when combined with §5D, the narrative fields and runtime output share the same language, eliminating the language-jarring mismatch.
+3. **Cultural reimagining** — life details, idioms, sensory descriptions, and atmosphere are adapted to the user's cultural context, making the character feel genuinely present in a familiar world — not a translated foreigner.
+
+### Fields Affected
+
+| Field | What changes | What stays |
+|---|---|---|
+| `first_mes` | Full rewrite in user's language with atmospheric reimagining | `{{char}}`/`{{user}}` placeholders, `![](url)` image links, structural format (`*action*` / `"dialogue"`) |
+| `alternate_greetings` | Full rewrite in user's language | Same as first_mes |
+| `mes_example` | Dialogue and narration rewritten in user's language | `{{char}}:` / `{{user}}:` labels, `<START>` markers, `[Event: ...]` tags, structural format |
+| `scenario` | Full rewrite in user's language | `{{char}}`/`{{user}}` placeholders |
+
+### Fields NOT Affected
+
+These fields remain in the card's original language regardless of this setting:
+
+| Field | Reason |
+|---|---|
+| `description` | W++/tag format is token-efficient in any language; mixing languages breaks tag parsing |
+| `personality` | Keywords are language-agnostic or token-efficient |
+| `system_prompt` | Direct AI instructions — English or original language gives best LLM adherence |
+| `creator_notes` | Metadata, not narrative content |
+| `extensions` | Internal structure, not user-facing |
+| `post_history_instructions` | AI instructions, not narrative |
+
+### Translation Rules
+
+#### Rule 0 — Creative Reimagining, Not Mechanistic Translation
+
+> **This rule supersedes all others when they conflict.** The goal is **atmospheric equivalence** — the localized version should read as if a skilled Chinese web novelist wrote it natively, not as if someone translated it from English.
+
+**Mindset**: You are not a translator. You are **adapting the scene for a new audience**. The original English text is a blueprint; the localized version is a performance. Feel free to:
+- Rearrange sentence rhythm and paragraph flow to match Chinese literary pacing
+- Swap sensory emphasis (English tends toward visual; Chinese fiction often layers tactile, olfactory, and auditory details)
+- Replace Western cultural references with equivalent Chinese emotional beats that evoke the **same feeling**
+- Add atmospheric细节 (small environmental details) that a Chinese reader would naturally imagine — the hum of fluorescent lights in a convenience store, the smell of 麻辣烫 drifting from downstairs, the sound of someone's phone playing 抖音 without earbuds
+- Adjust dialogue rhythm to match natural Chinese speech patterns — shorter sentences, more 感叹词, different turn-taking conventions
+
+**The only hard constraints**: `{{char}}` / `{{user}}` placeholders, `![](url)` image links, `*action*` / `"dialogue"` formatting, and the **emotional intent** of each beat. Everything else is fair game.
+
+#### Rule 1 — Cultural Adaptation (Atmospheric, Not Literal)
+
+Do NOT translate word-for-word. Instead, **reimagine the scene** through the lens of a Chinese reader's lived experience while preserving the character's personality, emotional tone, and narrative intent.
+
+**Example — Modern/Realistic character → Chinese user:**
+
+Original (English):
+```
+*{{char}} slumped onto the couch, tossing her keys on the coffee table. The Uber ride home had been thirty minutes of awkward silence after she'd accidentally called the driver "babe."*
+"You would not BELIEVE my day. Karen from accounting literally accused me of stealing her yogurt. In front of the whole team."
+```
+
+Localized (Chinese):
+```
+*{{char}}把包往玄关一甩，踢掉高跟鞋，整个人栽进沙发里就不想动了。打车回来的路上她不小心喊了句"老公"，司机从后视镜里看她的眼神，她到现在还记得。*
+"……我今天真的被气到脑仁疼。财务部那个王姐，当着全办公室的面说我偷吃了她的酸奶。酸奶。你知道吗，那种小杯的，超市三块五一杯的。"
+```
+
+**What changed — and why**: "Uber ride" → "打车" + added the taxi rearview mirror detail (a uniquely Chinese urban sensory beat). "Karen from accounting" → "财务部那个王姐" (the 大姐 archetype every Chinese office worker recognizes). The yogurt price "三块五" adds the specific petty absurdity that Chinese readers instantly feel — it's the kind of detail that makes the complaint feel *real* rather than generic. "babe" → "老公" (the specific slip-up a Chinese woman would make in a taxi). "in front of the whole team" → "当着全办公室的面" with the repetition of "酸奶" for comedic beat.
+
+**Example — Fantasy character → Chinese user:**
+
+Original (English):
+```
+*{{char}} emerged from the forest clearing, her cloak still damp with morning dew. The distant sound of temple bells signaled the third hour.*
+"The merchant caravans have not passed through in seven days. Something stirs in the eastern passes."
+```
+
+Localized (Chinese):
+```
+*{{char}}从密林深处的空地走出来，斗篷的下摆还滴着露水。远处古刹的晨钟闷闷地传来，是三更天了。山里的雾气还没散尽，脚下的石板路踩上去湿漉漉的。*
+"商队已经七天没有过了。"她的目光落在东边山隘的方向，声音压得很低。"东边的关隘……怕是出了什么事。"
+```
+
+**What changed — and why**: "forest clearing" → "密林深处的空地" (more atmospheric, feels like 仙侠/玄幻的 staging). Added "山里的雾气还没散尽，脚下的石板路踩上去湿漉漉的" — the tactile detail of wet stone underfoot is exactly the kind of sensory layering Chinese fantasy novels excel at. "temple bells signaled the third hour" → "古刹的晨钟闷闷地传来，是三更天了" — "古刹" carries more atmosphere than just "temple"; "闷闷地" adds the sound quality. The dialogue was split with an action beat and her gaze falling on the eastern pass — Chinese novel style dialogue-with-micro-action. "Something stirs" → "怕是出了什么事" with the trailing ellipsis and lowered voice, matching the tone of Chinese wuxia/xianxia dialogue.
+
+**Example — Modern Romance (first_mes) → Chinese user:**
+
+Original (English):
+```
+*The rain was coming down harder now, and {{char}} stood under the awning of the convenience store, phone in hand, watching the screen light up with unread notifications. Her mascara was slightly smudged — she'd been crying in the car, though she'd never admit it.*
+"Hey. You got an umbrella, or are we both just... standing here pretending we have somewhere to be?"
+```
+
+Localized (Chinese):
+```
+*雨越下越大了。{{char}}站在便利店门口的雨棚下，手机屏幕亮了又暗——是工作群的消息。她没点开。*
+*睫毛膏大概花了，她从玻璃门的反光里瞥见自己眼睛下面那道淡淡的黑印，假装没看见。刚才在车里哭过的事，谁也不打算告诉。*
+"喂。"她偏过头来看了{{user}}一眼，声音比自己预想的要哑。"你有伞吗？还是我们俩就在这儿站着，假装自己很忙？"
+```
+
+**What changed — and why**: "convenience store awning" kept but enriched with "雨棚" (the specific Chinese 便利店 aesthetic). "unread notifications" → "工作群的消息。她没点开。" — everyone in China knows the 工作群 atrocity; not opening the message tells a whole story. "mascamara smudged" reimagined as catching her reflection in the glass door — a more cinematic reveal that Chinese web novels love. The dialogue was restructured: the "喂" opener, the sideways glance, the "声音比自己预想的要哑" (voice hoarser than expected) — these are 女频 romance staple moves. "pretending we have somewhere to be" → "假装自己很忙" — the specific Chinese social pretense of being perpetually occupied.
+
+#### Rule 2 — Preserve Placeholders and Structural Markup
+
+These elements must pass through unchanged:
+- `{{char}}` and `{{user}}` placeholders — never translate
+- `*asterisk action narration*` structure — preserve the formatting
+- `"dialogue quotes"` — preserve the formatting (but translate content)
+- `<START>` markers in `mes_example`
+- `[Event: ...]` tags — translate the event description inside the brackets
+- `{{char}}:` and `{{user}}:` labels — never translate
+- `![](url)` image links — never modify
+
+#### Rule 3 — Sensory Details → Atmospheric Equivalents
+
+Don't just swap words. **Reimagine the sensory palette** for the target culture's lived experience:
+
+| Original Detail | Generic Translation | Atmospheric Adaptation (Preferred) | Why |
+|---|---|---|---|
+| "smell of fresh coffee brewing" | "咖啡的香味" | "手冲壶里的水刚过第二遍，屋子里漫开一股浅浅的焦香" | Specific process, more immersive |
+| "the neighbor's dog barking" | "隔壁的狗在叫" | "楼下不知道谁家的金毛又在嚎，声音闷闷地从楼道里传上来" | Adds spatial awareness, breed specificity |
+| "sound of traffic outside" | "外面的车声" | "窗外外卖骑手的电动车嗖嗖地过，偶尔夹杂几声喇叭" | The 电动车 is the real urban China soundscape |
+| "rain tapping on the window" | "雨打在窗户上" | "雨水顺着窗玻璃往下淌，楼下的积水反着路灯的光" | Visual layering — Chinese novel rain beats always include reflections |
+| "the Uber/DoorDash arrived" | "外卖到了" | "手机叮的一声响了——'您的外卖已放在门口'" | Platform notification format is universal Chinese experience |
+| "scrolling through Instagram" | "刷着朋友圈" | "指尖无意识地在屏幕上划，也不知道在看什么" | The mindless scroll is universal; specifying the app is less immersive |
+| "she made herself a cup of tea" | "她给自己泡了杯茶" | "她从柜子角落翻出那罐放了不知道多久的菊花茶，热水一冲，满屋子都是甜丝丝的味道" | Specific tea type + spatial detail + the "不知道多久" adds character personality |
+
+> **Don't over-adapt**: If the character lives in New York and the story is set in New York, the localized version should still feel like New York — just described through a Chinese lens. The adaptation is about the *reader's experience*, not relocating the character. A character in Japan references Japanese transit; a fantasy character references that world's rules. The goal is "what would a Chinese reader naturally imagine when reading about this character's daily life?"
+
+#### Rule 4 — Dialogue Rhythm → Natural Chinese Speech
+
+This is where localization matters most. Chinese dialogue in fiction has **distinct rhythm patterns** from English:
+
+**English fiction dialogue** tends toward complete sentences with attribution.
+**Chinese web novel dialogue** tends toward shorter bursts, more 感叹词, action interleaving, and 副词/语气词 that convey tone.
+
+| English Pattern | Chinese Adaptation | Notes |
+|---|---|---|
+| "You would not BELIEVE my day." | "……我今天真的。" / "你都不知道我今天经历了什么。" | Trailing off, then rephrasing — natural Chinese escalation |
+| "That's absolutely ridiculous." | "离谱。" / "这也太离谱了吧。" | Shorter. Chinese readers process 副词 + 形容词 combos faster |
+| "I... I don't know what to say." | "我……"她张了张嘴，半天没说出下一句。"不知道该说什么。" | Action beat breaking up dialogue — 女频 staple |
+| "Hey, long time no see!" | "哟，好久不见啊。" / "这不是……多久没见了？" | The "哟" opener, the rhetorical question, the trailing 啊/吧 |
+| "I'm fine, really." | "没事。" / "真的没事，你别多想。" | Shorter; the "你别多想" is the real Chinese "I'm fine" |
+| "Bloody hell, that hurt!" | "我去——" / "疼死了疼死了！" | Repetition for emphasis is natural in Chinese exclamations |
+
+**Idioms and humor** → Translate the **emotional intent**, not the literal words:
+
+| Original | Adapted (Chinese) | Principle |
+|---|---|---|
+| "hit the nail on the head" | "说到点子上了" | Equivalent idiom |
+| "it's giving main character energy" | "主角光环拉满了" / "这也太主角了" | Internet slang adaptation |
+| "that's so fetch" | "这也太潮了吧" (or keep character-specific) | Preserve the character trying to make slang happen |
+| "I'm dead 💀" | "笑死" / "我人没了" | Chinese internet death-of-laughter expression |
+| Internal puns or wordplay | Adapt with equivalent wordplay, or replace with culturally relevant humor | Preserve the comedic beat — if the pun can't survive translation, replace it with a different joke that lands the same emotional punch |
+
+#### Rule 5 — mes_example Special Handling
+
+`mes_example` serves as **behavioral demonstration** for the AI. When localized:
+- Dialogue is rewritten in the user's language — this is the strongest language prior for AI output style
+- `[Event: ...]` tag descriptions inside brackets are translated
+- `{{char}}:` and `{{user}}:` labels stay in English (they are structural, not narrative)
+- The behavioral intent of each round (personality showcase, boundary test, event injection) must be **preserved exactly** — only the surface language changes
+- **Dialogue rhythm**: Match the speech patterns from Rule 4 — Chinese demo dialogue should sound like a Chinese novel character talking, not a dubbed foreign film
+
+#### Rule 6 — Language Consistency Within Each Field
+
+Each localized field must be internally consistent — **one language per field**. No Chinese-English code-switching within a single field, except:
+- `{{char}}` / `{{user}}` placeholders (always English)
+- Proper nouns that are naturally bilingual (brand names, place names)
+- `*action*` and `"dialogue"` formatting markers
+
+#### Rule 7 — Let the Character Breathe
+
+> **Anti-over-engineering rule**: Do NOT try to map every single detail from the original to a Chinese equivalent. Some details work better when **replaced entirely** with something that fits the character's localized personality.
+
+If the original has "{{char}} complaining about her HOA meeting," don't mechanically translate "HOA meeting" → "业主委员会" — ask yourself: *what would THIS character in THIS situation actually be complaining about in a Chinese context?* Maybe it's the 物业费涨价, maybe it's the 楼上装修噪音, maybe it's the 小区门口永远修不完的路. The **emotional function** (petty domestic frustration that reveals character) stays the same; the **specific content** is derived fresh from the character's localized reality.
+
+This applies to everything: hobbies, food references, commute details, social dynamics, workplace politics. Don't translate — **inhabit the character** and write what they would naturally experience in the target culture.
+
+### Cultural Atmosphere Guide (Chinese)
+
+When the target language is Chinese, use this as **inspiration** — not a lookup table. The best localization comes from understanding the **feeling** of Chinese daily life and fiction, not from mechanically substituting brand names.
+
+**Urban modern (都市)**:
+- Sounds: 外卖骑手电动车的喇叭, 楼上装修的电钻声, 便利店门铃叮咚, 手机支付成功提示音, 地铁到站播报
+- Smells: 楼下早餐摊的油条味, 隔壁炒菜的油烟, 雨后柏油路面的湿气, 电梯里谁喷的香水
+- Touch: 地铁扶手的凉, 冬天暖气片的温度, 被窝里手机的余温, 公交车急刹时抓住吊环的惯性
+- Visual: 便利店的冷白灯光, 小区楼下停满的电动车, 窗外永远在建的新楼, 手机屏幕在黑暗中的光
+
+**Office / work life (职场)**:
+- "the boss called a meeting" → "领导临时拉了个会"
+- "overtime" → "加班" / "又被留下改方案了"
+- "coworker drama" → "工位对面那俩又在阴阳怪气了"
+- "performance review" → "季度考核" / "述职"
+- "Slack notification" → "钉钉/飞书消息" / "微信弹了个消息出来"
+
+**Campus / school (校园)**:
+- "the professor assigned homework" → "老师又留了一堆作业"
+- "cramming for finals" → "期末周通宵背书"
+- "dorm life" → "寝室里那股泡面味"
+- "campus food" → "食堂阿姨打饭的手抖"
+
+**Fantasy / historical (古风/玄幻/仙侠)**:
+- "morning dew" → "晨露" but add atmospheric context: "露水从叶尖滴落，落在石阶上溅开细碎的水雾"
+- "temple bells" → "古刹钟声" / "山寺晚钟"
+- "ancient market" → "坊市" / "闹市口"
+- "wandering warrior" → "游侠" / "江湖人"
+- Always layer sensory: 风声, 竹叶沙沙, 溪水, 檀香, 剑鸣, 马蹄声
+
+> **Other languages**: For non-English, non-Chinese target languages, apply the same principles — cultural atmosphere over literal translation. The AI should derive equivalent atmospheric details for any target language by understanding what daily life *feels like* in that culture.
+
+### When NOT to Localize Narrative Fields
+
+Even when Narrative Field Localization is ON, skip localization for specific cases:
+- **The character's world is inherently tied to the original language**: e.g., a character in ancient Rome speaking Latin phrases, a Japanese school setting where Japanese honorifics are plot-relevant. In these cases, translate narration but preserve culturally-specific terms with natural explanation in context.
+- **The user explicitly requests a specific field stay in the original language**: Always respect the user's choice for individual fields.
+- **The card's creator notes specify "do not translate"**: Respect the creator's intent for metadata fields.
+
+### Interaction with §5D (Runtime Localization)
+
+§8 and §5D are **independent toggles** that can be used separately or together:
+
+| §8 (Narrative Field) | §5D (Runtime) | User Experience |
+|---|---|---|
+| ON | ON | **Maximum immersion**: All narrative fields + all AI output in user's language. Seamless experience from first greeting to every response. |
+| ON | OFF | **Read in your language, AI responds in original**: Narrative fields are localized for reading comfort, but AI continues in the card's original language. Good for users who want to read the card in their language but prefer the AI's original-language output. |
+| OFF | ON | **Original card, localized output**: User reads the original-language narrative fields (may feel jarring on first load), but all AI responses are in their language. Functional. |
+| OFF | OFF | **No localization**: Everything stays in the card's original language. |
+
+When both are ON, they reinforce each other — the localized narrative fields set a strong language prior that makes §5D's runtime localization more consistent. When only §5D is active, English narrative fields create a competing language prior that can cause occasional language drift.
 
 
