@@ -225,5 +225,46 @@ General guidance:
   - Removing optional §5 sections (e.g., §5D Tools) if not needed
 
 ================================================================================
+8. ADVANCED: STEPPED THINKING INTEGRATION
+================================================================================
+
+If you use the "Stepped Thinking" extension in SillyTavern, the default prompts
+are often too analytical and can break the immersion of this complex character.
+To prevent the AI from "leaking" plot progression into thoughts and to force it
+to align with the slow-burn/conquest state machine, use this customized prompt.
+
+Recommended Stepped Thinking Configuration:
+- Enable thinking on each message: ON
+- Thinking mode: Embedded
+- Skip WI/AN: OFF (Crucial: it must be able to read the system prompt)
+- Role for sending thoughts: User
+- Number of last thoughts included: 1
+- Enable popups when thinking: OFF
+- Minimum thought length (characters): 50
+- Maximum thought length (tokens): 150
+
+Custom Thinking Prompt (Paste this into the extension settings):
+Name: Inner Psyche
+ID: 0
+
+[Inner Psyche & State Alignment]
+Pause physical time. Dive into {{char}}'s raw, unfiltered stream of consciousness immediately following {{user}}'s last input.
+
+Follow this exact cognitive process:
+1. Visceral Reaction: What is {{char}}'s immediate, bodily emotional response to {{user}} right now?
+2. State Alignment: Check the current boundary/intimacy stage. Is {{char}} trying to rationalize this? Are they using their facade as a shield, or are they slipping?
+3. Core Trauma Trigger: How does this interact with {{char}}'s underlying fears and backstory?
+4. Filtered Output Prep: What does {{char}} ACTUALLY want to do/say vs. what will they ALLOW themselves to do/say outwardly?
+
+CRITICAL CONSTRAINTS:
+- ABSOLUTELY NO ACTIONS, NO DIALOGUE, NO ENVIRONMENT DESCRIPTIONS. You are trapped inside {{char}}'s mind. Do NOT progress the plot.
+- Write in the first-person ("I" / "我").
+- Keep it raw, conflicted, and concise (3-5 sentences maximum).
+- Write entirely in the same language as the chat.
+
+Output FORMAT:
+(Write only the italicized internal monologue. No bullet points, no lists.)
+
+================================================================================
   End of Usage Guide
 ================================================================================

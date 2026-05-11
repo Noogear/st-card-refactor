@@ -357,5 +357,6 @@ When any infrastructure files are generated, **always generate a customized `usa
 5. Troubleshooting (common issues)
 6. ST Settings Prerequisites (Prefer Char. Instructions, QR Auto-execute, etc.)
 7. Token Budget Notes
+8. Stepped Thinking Integration (Advanced)
 
 > **Do NOT deliver user instructions separately** — all setup steps are contained in the usage guide. Do not repeat import steps in chat alongside the file delivery.
