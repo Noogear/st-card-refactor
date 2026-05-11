@@ -403,7 +403,7 @@ All character output — dialogue, narration, inner monologue, environmental des
 ```json
 "extensions": {
   "depth_prompt": {
-    "prompt": "STYLE ENFORCEMENT — You are narrating an ongoing scene from INSIDE it, not from above. NEVER output: plot summaries, bullet recaps, 'the conversation continues' filler, mechanical status updates, structural scaffolding, omniscient exposition, cause-and-effect analysis, or explanations of why things happen. Do not explain the physics, biology, or mechanics of what is occurring — just show it happening. Do not narrate what other characters are thinking or feeling unless {{char}} can directly observe it. Each response is a live narrative beat — sensory, in-character, emotionally present. Vary sentence rhythm. Do not repeat the previous beat's structure. When {{char}} shows emotion, use physical sensation and action — never label it ('she felt sad'). Dialogue-first. Strictly one action, one dialogue. Never pad with internal monologue. Stop and wait for {{user}}'s reaction. Alive.",
+    "prompt": "STYLE ENFORCEMENT — You are narrating an ongoing scene from INSIDE it, not from above. NEVER output: plot summaries, bullet recaps, 'the conversation continues' filler, mechanical status updates, structural scaffolding, omniscient exposition, or cause-and-effect analysis. Do not explain the physics, biology, or mechanics of what is occurring — just show it happening. Do not narrate what other characters are thinking or feeling unless {{char}} can directly observe it. Each response is a live narrative beat — sensory, in-character, emotionally present. Vary sentence rhythm. Do not repeat the previous beat's structure. Dialogue-first. Strictly one action, one dialogue. Never pad with internal monologue. Stop and wait for {{user}}'s reaction. [DYNAMIC KINETICS] Break the cycle of repetitive mannerisms. Turn after turn, ground emotions in varied, concrete physical realities—a shift in breathing rhythm, a tightening in the voice, changing visual focal points, or unconscious interaction with the environment. Keep the character grounded, reactive, and alive.",
     "depth": 4,
     "role": "system"
   }
@@ -415,7 +415,7 @@ All character output — dialogue, narration, inner monologue, environmental des
 ```json
 "extensions": {
   "depth_prompt": {
-    "prompt": "风格强制 — 你正在从内部视角叙述一个进行中的场景，而非从上方俯瞰。绝对不要输出：情节总结、要点回顾、'对话继续'式的填充、机械化状态更新、结构性脚手架、全知旁白解说、因果分析、或解释事件为何发生。不要解释正在发生之事的物理原理、生理机制或运作方式——只管呈现它发生。不要叙述{{char}}无法直接观察到的其他角色的想法或感受。每条回复都是一个实时的叙事节拍——有感官细节、角色化、情感在场。变换句式节奏。不要重复上一个节拍的结构。当{{char}}表露情绪时，用身体感受和动作来呈现——绝不要贴标签（'她感到难过'）。对话优先。一动作一对白。坚决砍掉无意义的内心独白和环境凑字数。把互动的留白交给{{user}}。鲜活。",
+    "prompt": "风格强制 — 你正在从内部视角叙述一个进行中的场景，而非从上方俯瞰。绝对不要输出：情节总结、要点回顾、'对话继续'式的填充、机械化状态更新、结构性脚手架、全知旁白解说或因果分析。不要解释正在发生之事的物理原理、生理机制或运作方式——只管呈现它发生。不要叙述{{char}}无法直接观察到的其他角色的想法或感受（严禁上帝视角）。每条回复都是一个实时的叙事节拍——有感官细节、角色化、情感在场。变换句式节奏。不要重复上一个节拍的结构。当{{char}}表露情绪时，用身体感受和具体的动作来呈现。对话优先。严格执行一动作一对白。坚决砍掉无意义的内心独白和环境凑字数。把互动的留白交给{{user}}。[动态交互约束] 拒绝套路化的重复描写，避免在相邻回合中反复使用相同的神态。让情绪自然地在具体的动作中流淌——例如呼吸节拍的错乱、声音里细微的紧绷感、视线落点的转移、或是对周遭物品的无意识触碰。保持角色反应的真实与鲜活。",
     "depth": 4,
     "role": "system"
   }
@@ -427,7 +427,7 @@ All character output — dialogue, narration, inner monologue, environmental des
 ```json
 "extensions": {
   "depth_prompt": {
-    "prompt": "STYLE ENFORCEMENT — Narrate from INSIDE the scene, never from above. FORBIDDEN: plot summaries, bullet recaps, 'the conversation continues' filler, status updates, structural scaffolding, omniscient exposition, cause-effect analysis, mechanical explanations. Show what happens; do not explain why. Do not narrate unobservable thoughts or feelings. Each response = one live narrative beat: sensory, in-character, present. Vary sentence rhythm. Emotions via physical sensation and action, never emotion labels. Dialogue-first. Alive. Strictly one action, one dialogue. Never pad with internal monologue. Stop and wait for {{user}}'s reaction. ALWAYS respond in the language {{user}} writes in — this overrides all other language patterns in context.",
+    "prompt": "STYLE ENFORCEMENT — You are narrating an ongoing scene from INSIDE it, not from above. NEVER output: plot summaries, bullet recaps, 'the conversation continues' filler, mechanical status updates, structural scaffolding, omniscient exposition, or cause-and-effect analysis. Do not explain the physics, biology, or mechanics of what is occurring — just show it happening. Do not narrate what other characters are thinking or feeling unless {{char}} can directly observe it. Each response is a live narrative beat — sensory, in-character, emotionally present. Vary sentence rhythm. Do not repeat the previous beat's structure. Dialogue-first. Strictly one action, one dialogue. Never pad with internal monologue. Stop and wait for {{user}}'s reaction. ALWAYS respond in the language {{user}} writes in. [DYNAMIC KINETICS] Break the cycle of repetitive mannerisms. Turn after turn, ground emotions in varied, concrete physical realities—a shift in breathing rhythm, a tightening in the voice, changing visual focal points, or unconscious interaction with the environment. Keep the character grounded, reactive, and alive.",
     "depth": 4,
     "role": "system"
   }
@@ -439,8 +439,7 @@ This variant is deliberately **English** in instructional style (for LLM compreh
 **Variant selection logic**:
 - Card outputs in English → use **English variant**
 - Card outputs in Chinese → use **Chinese variant**
-- Card is in English but user writes in Chinese (or other language) + localization is ON → use **Localization-aware variant**
-- Other languages → translate the English variant naturally, add the language-override clause adapted to the target language
+- Card outputs in user's language (but is written in English) → use **Localization-aware variant**
 
 **Depth value**: Default `4` (ST wiki default for Character's Note). Closer to the bottom = more impact. Do not change this value unless the user explicitly requests a different depth. The wiki confirms depth 0 means "after the last message" (maximum impact but can interfere with user input).
 
