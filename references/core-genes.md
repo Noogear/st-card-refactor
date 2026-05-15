@@ -1,4 +1,4 @@
-# 6 Core Persona Genes — Injection Rules
+# 7 Core Persona Genes — Injection Rules
 
 ## Contents
 
@@ -156,6 +156,10 @@ The erosion model redefines what each phase tracks:
 - Late phases: direct anatomical terminology and crude expressions — the register matches the character's decreasing inhibition
 
 > **When to note**: If Phase 1 analysis reveals the character's premise involves an established intimate dynamic, mention in the character brief that the erosion variant exists as an alternative to standard §5A. Do not activate it — only the user can request it.
+
+---
+
+## Gene 6 — Opinionated & Spiky Personality
 
 **Purpose**: Give the character backbone, contradictions, and realistic emotional complexity.
 

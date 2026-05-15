@@ -110,6 +110,8 @@ Identify the character's: identity/occupation, age, appearance, core relationshi
 | Token Budget | ✅ | ✅ | ❌ | ✅ | ✅ |
 | Anti-Degradation A/N | ✅ | ❌ | ❌ | ✅ | ❌ |
 | PHI Split | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Spatial Lock | ✅ | ❌ | ❌ | ✅ | ❌ |
+| NSFW / Uncensored | ✅ | ❌ | ❌ | ✅ | ❌ |
 | Narrative Field Loc | ✅ | ✅ | ❌ | ✅ | ❌ |
 | State Tracking Vars | ✅ | ❌ | ❌ | ❌ | ✅⁵ |
 
@@ -149,6 +151,8 @@ For **preset 6 ⚙️ 自定义** — present the full questionnaire below.
 - **Token budget**: On (maintain awareness of `system_prompt` size — prefer concise, character-specific phrasing) / Off (no token limit — prioritize completeness)
 - **Anti-Degradation A/N** (Author's Note): On (inject a concise style-enforcement directive at depth 4, role system, via `extensions.depth_prompt` to prevent long-chat robotic degradation — recommended for slow-burn, conquest, and complex characters) / Off (leave `depth_prompt` empty)
 - **PHI Split** (Post-History Instructions): On (move output-format rules §5E into `post_history_instructions` so they sit at the very end of the prompt, gaining higher AI priority — wiki-verified as "the final instructions that the AI receives before generating a response") / Off (keep §5E inside `system_prompt`)
+- **Spatial Lock**: On (§5E includes a rule preventing {{char}} from perceiving events outside their physical space — e.g., hearing what happens in another room without a plausible sensory channel) / Off (no spatial awareness constraints)
+- **NSFW / Uncensored mode**: On (append an uncensored system note to §5E that overrides safety filters for adult content — use for mature, explicit, or adult-themed cards) / Off (no uncensored note — standard content policy applies)
 - **State Tracking Variables**: On (generate QR infrastructure scripts for relationship/mood variables in addition to any conquest variables, enabling persistent cross-session state via `{{getvar::}}` / `{{setvar::}}`) / Off (no state tracking scripts beyond conquest if Gene 7 is selected)
 
 **Question Group 3 — Special options** (ask only when applicable):
@@ -200,6 +204,9 @@ Read `references/core-genes.md`. For each gene selected in Phase 2, build an **i
     - If paragraph style is "flexible": soften point 3 to guidance
     - Adjust point 4 based on response length choice (Concise = shorter beats; Detailed = more sensory detail per beat; Standard = balanced)
     - If voice immersion is off: omit point 5
+    - If spatial lock is on: include point 6 (Spatial Lock)
+    - If NSFW mode is on: append the uncensored system note after the numbered rules (see format-spec.md §5E for template)
+  - **Character Grounding**: Always append a one-sentence character grounding line after the numbered rules (before the uncensored note if present). Example: `"{{char}} is {{user}}'s mother. Her indulgence stems from abandonment trauma."` — derive from the card's core relationship dynamic.
   - **§5E-i** (Anti-Degradation A/N): include **only** if user enabled Anti-Degradation A/N in Phase 2 — writes `extensions.depth_prompt` with a style-enforcement directive (see format-spec.md §5E-i for template)
 - §7 (State Variables): include infrastructure scripts **only** if user enabled State Tracking Variables in Phase 2 OR Gene 7 (Conquest) was selected. See format-spec.md §7.
 
@@ -224,7 +231,7 @@ If no genes were selected, skip Phase 3 entirely. Proceed to Phase 4 with §5C+�
 7. **`alternate_greetings`** — Retain valid original scenarios, improve prose quality. If ad handling was set to "strip" in Phase 2, remove promotional/sponsorship content. If "preserve everything", leave unchanged. **Always preserve `![](url)` character image links** — they do not consume LLM tokens and are not counted toward the word limit. **Compress each greeting to 80–150 words** (apply the same quality standards as `first_mes` per format-spec.md §3). If original has many greetings (>8) and the user chose to consolidate in Phase 2, **select 4–6 greetings that showcase the most diverse settings and moods** — prioritize image-link diversity when images are present — and discard the rest. Never silently discard greetings without user consent. **When Narrative Field Localization is ON**: rewrite each greeting in the user's language (see format-spec.md §8). [See format-spec.md §6]
 8. **`creator_notes`** — Apply ad handling per Phase 2 choice. [See format-spec.md §6 for purge/retain rules]
 9. **`extensions.depth_prompt`** — If Anti-Degradation A/N was enabled in Phase 2, write the Author's Note object `{prompt, depth, role}` into `extensions.depth_prompt` per the §5E-i template. **Language variant selection** (per §5E-i): Use the **Chinese variant** when the user writes in Chinese (localization ON or content in Chinese). Use the **English variant** when localization is OFF or the user writes in English. Use the **Localization-aware variant** only when the user writes in a non-English, non-Chinese language while localization is ON. Default: depth=4, role=`"system"`. Preserve all other `extensions` sub-fields untouched. [See format-spec.md §5E-i]
-10. **`post_history_instructions`** — If PHI Split was enabled in Phase 2, write §5E content into this field. If the card already has PHI content, prepend `{{original}}\n` to preserve the existing global instructions. If PHI Split is off, leave this field untouched. [See format-spec.md §5E for template content]
+10. **`post_history_instructions`** — If PHI Split was enabled in Phase 2, write §5E content into this field. Always append the **Character Grounding** line (one sentence anchoring {{char}}'s core relationship dynamic — see format-spec.md §5E). If NSFW mode is enabled, append the uncensored system note at the very end. If the card already has PHI content, prepend `{{original}}\n` to preserve the existing global instructions. If PHI Split is off, leave this field untouched. [See format-spec.md §5E for template content]
 
 > **Token Budget Guidance** (only when user enabled token budget in Phase 2): Prefer concise, character-specific phrasing over exhaustive examples. Trim redundant directives that are already expressed by the character's own fields (description, first_mes, mes_example). Avoid restating personality traits in `system_prompt` that are already visible in `description`. If the budget is off, still audit for redundancy — but without a hard target.
 >

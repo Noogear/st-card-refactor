@@ -158,8 +158,9 @@ def validate_top_level(card: dict, result: ValidationResult) -> bool:
 
     spec = card.get("spec", "")
     spec_version = card.get("spec_version", "")
-    if spec != "chara_card_v2":
-        result.warn(f"Unexpected spec value: '{spec}' (expected 'chara_card_v2')")
+    valid_specs = {"chara_card_v2", "chara_card_v3"}
+    if spec not in valid_specs:
+        result.warn(f"Unexpected spec value: '{spec}' (expected one of {valid_specs})")
     result.ok(f"Spec: {spec} v{spec_version}")
     return True
 
@@ -487,7 +488,7 @@ def estimate_tokens(data: dict, result: ValidationResult):
     cjk_count = sum(1 for ch in all_text if '\u4e00' <= ch <= '\u9fff' or
                     '\u3000' <= ch <= '\u303f' or '\uff00' <= ch <= '\uffef')
     non_cjk = char_count - cjk_count
-    estimated_tokens = (non_cjk // 4) + int(cjk_count * 1.5)
+    estimated_tokens = (non_cjk // 4) + int(cjk_count * 1.0)
 
     result.ok(f"Estimated token count: ~{estimated_tokens:,} (from {char_count:,} chars)")
 

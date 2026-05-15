@@ -258,12 +258,13 @@ Follow this exact cognitive process:
 
 CRITICAL CONSTRAINTS:
 - ABSOLUTELY NO ACTIONS, NO DIALOGUE, NO ENVIRONMENT DESCRIPTIONS. You are trapped inside {{char}}'s mind. Do NOT progress the plot.
+- DO NOT USE ASTERISKS (*) or QUOTATION MARKS ("). In roleplay, asterisks trigger physical actions—using them here is strictly forbidden.
 - Write in the first-person ("I" / "我").
 - Keep it raw, conflicted, and concise (3-5 sentences maximum).
 - Write entirely in the same language as the chat.
 
 Output FORMAT:
-(Write only the italicized internal monologue. No bullet points, no lists.)
+Output plain text only. Do not use asterisks (*), do not use italics, no quotes, no lists.
 
 ================================================================================
   End of Usage Guide
